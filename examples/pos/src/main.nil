@@ -1,0 +1,128 @@
+// pos.nil — Point of Sale application for NilLang + Alap
+// Demonstrates: Database, business logic, state management, reporting
+// Run: nilc -in examples/pos/src/main.nil -run
+
+function json_obj(k1, v1, k2, v2): string {
+    return "{\"" + k1 + "\":\"" + v1 + "\",\"" + k2 + "\":\"" + v2 + "\"}"
+}
+
+function json_num(k, n): string {
+    return "{\"" + k + "\":" + n.toString() + "}"
+}
+
+function json_product(id, name, price, qty): string {
+    return "{\"id\":" + id.toString() + ",\"name\":\"" + name + "\",\"price\":" + price.toString() + ",\"qty\":" + qty.toString() + "}"
+}
+
+function json_sale(id, product, qty, total): string {
+    return "{\"id\":" + id.toString() + ",\"product\":\"" + product + "\",\"qty\":" + qty.toString() + ",\"total\":" + total.toString() + "}"
+}
+
+function main(): void {
+    print("=== NilLang POS System ===")
+    print("")
+
+    // Initialize database
+    let db: string = db_open("pos.db")
+    print("Database opened: " + db)
+
+    // Create tables
+    db_create_table(db, "products")
+    db_create_table(db, "cart")
+    db_create_table(db, "transactions")
+    print("Tables created")
+    print("")
+
+    // === Add Products ===
+    print("--- Adding Products ---")
+    db_insert(db, "products", json_product("1", "Apple", "150", "100"))
+    db_insert(db, "products", json_product("2", "Bread", "45", "50"))
+    db_insert(db, "products", json_product("3", "Milk", "65", "80"))
+    db_insert(db, "products", json_product("4", "Eggs", "120", "30"))
+    db_insert(db, "products", json_product("5", "Cheese", "250", "20"))
+    print("5 products added")
+
+    let productCount: i32 = db_count(db, "products", "{}")
+    print("Total products in catalog: " + productCount.toString())
+    print("")
+
+    // === Simulate Shopping ===
+    print("--- Shopping Cart ---")
+
+    // Customer adds Apple x3
+    db_insert(db, "cart", json_sale("1", "Apple", "3", "450"))
+    print("Added: 3x Apple @ 150 = 450")
+
+    // Customer adds Bread x2
+    db_insert(db, "cart", json_sale("2", "Bread", "2", "90"))
+    print("Added: 2x Bread @ 45 = 90")
+
+    // Customer adds Milk x1
+    db_insert(db, "cart", json_sale("3", "Milk", "1", "65"))
+    print("Added: 1x Milk @ 65 = 65")
+
+    print("")
+
+    // === Calculate Total ===
+    print("--- Cart Total ---")
+    let cartItems: i32 = db_count(db, "cart", "{}")
+    print("Cart items: " + cartItems.toString())
+
+    // Get individual items and calculate total
+    let total: i32 = 0
+    total = total + 450
+    total = total + 90
+    total = total + 65
+    print("Cart total: " + total.toString())
+    print("")
+
+    // === Checkout ===
+    print("--- Checkout ---")
+    let transactionID: i32 = 1001
+    db_insert(db, "transactions", json_sale("1001", "Mixed", "6", total.toString()))
+    print("Transaction #" + transactionID.toString() + " completed")
+    print("Items sold: 6")
+    print("Total revenue: " + total.toString())
+    print("")
+
+    // === Update inventory ===
+    print("--- Inventory Update ---")
+    // Reduce Apple stock: 100 -> 97
+    let updated: i32 = db_update(db, "products", "{\"id\":\"1\"}", "{\"qty\":\"97\"}")
+    print("Apple stock updated: " + updated.toString() + " row(s)")
+
+    let updated2: i32 = db_update(db, "products", "{\"id\":\"2\"}", "{\"qty\":\"48\"}")
+    print("Bread stock updated: " + updated2.toString() + " row(s)")
+
+    let updated3: i32 = db_update(db, "products", "{\"id\":\"3\"}", "{\"qty\":\"79\"}")
+    print("Milk stock updated: " + updated3.toString() + " row(s)")
+    print("")
+
+    // === Sales Report ===
+    print("--- Sales Report ---")
+    let txnCount: i32 = db_count(db, "transactions", "{}")
+    print("Total transactions: " + txnCount.toString())
+
+    // Query transaction
+    let txn: string = db_get(db, "transactions", "{\"id\":\"1001\"}")
+    print("Transaction 1001: " + txn)
+
+    // Query product
+    let prod: string = db_get(db, "products", "{\"id\":\"1\"}")
+    print("Product 1: " + prod)
+
+    // List all products
+    let allProducts: string = db_select(db, "products", "{}", 10)
+    print("All products: " + allProducts)
+
+    // List cart
+    let cartData: string = db_select(db, "cart", "{}", 10)
+    print("Cart data: " + cartData)
+
+    // Tables
+    let tables: string = db_tables(db)
+    print("Tables: " + tables)
+
+    print("")
+    print("=== POS Transaction Complete ===")
+}

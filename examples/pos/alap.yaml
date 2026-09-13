@@ -1,0 +1,23 @@
+// alap.yaml — Alap POS Project Manifest
+name: pos
+version: 0.1.0
+description: "Point of Sale - NilLang + Alap vertical slice"
+
+entry: src/main.nil
+
+permissions:
+  - storage.read
+  - storage.write
+
+targets:
+  onuron:
+    arch: arm64
+  android:
+    minSdk: 26
+    targetSdk: 35
+  ios:
+    minVersion: "16.0"
+  linux:
+    display: wayland
+
+dependencies: {}

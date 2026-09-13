@@ -192,6 +192,32 @@ func (c *Checker) registerBuiltins() {
 	}}
 	c.global.define("log", logFn, true)
 
+	// Database built-in functions
+	c.global.define("db_open", &Type{Kind: KindFunc, Name: "db_open", Func: &FuncType{Params: []*Type{String}, Return: String}}, true)
+	c.global.define("db_close", &Type{Kind: KindFunc, Name: "db_close", Func: &FuncType{Params: []*Type{String}, Return: Bool}}, true)
+	c.global.define("db_create_table", &Type{Kind: KindFunc, Name: "db_create_table", Func: &FuncType{Params: []*Type{String, String}, Return: Bool}}, true)
+	c.global.define("db_insert", &Type{Kind: KindFunc, Name: "db_insert", Func: &FuncType{Params: []*Type{String, String, String}, Return: String}}, true)
+	c.global.define("db_select", &Type{Kind: KindFunc, Name: "db_select", Func: &FuncType{Params: []*Type{String, String, String, I32}, Return: String}}, true)
+	c.global.define("db_update", &Type{Kind: KindFunc, Name: "db_update", Func: &FuncType{Params: []*Type{String, String, String, String}, Return: I32}}, true)
+	c.global.define("db_delete", &Type{Kind: KindFunc, Name: "db_delete", Func: &FuncType{Params: []*Type{String, String, String}, Return: I32}}, true)
+	c.global.define("db_count", &Type{Kind: KindFunc, Name: "db_count", Func: &FuncType{Params: []*Type{String, String, String}, Return: I32}}, true)
+	c.global.define("db_get", &Type{Kind: KindFunc, Name: "db_get", Func: &FuncType{Params: []*Type{String, String, String}, Return: String}}, true)
+	c.global.define("db_tables", &Type{Kind: KindFunc, Name: "db_tables", Func: &FuncType{Params: []*Type{String}, Return: String}}, true)
+
+	// Time & Math & Crypto & FS builtins
+	c.global.define("time_now", &Type{Kind: KindFunc, Name: "time_now", Func: &FuncType{Params: nil, Return: I32}}, true)
+	c.global.define("time_sleep", &Type{Kind: KindFunc, Name: "time_sleep", Func: &FuncType{Params: []*Type{I32}, Return: Void}}, true)
+	c.global.define("crypto_sha256", &Type{Kind: KindFunc, Name: "crypto_sha256", Func: &FuncType{Params: []*Type{String}, Return: String}}, true)
+	c.global.define("crypto_md5", &Type{Kind: KindFunc, Name: "crypto_md5", Func: &FuncType{Params: []*Type{String}, Return: String}}, true)
+	c.global.define("crypto_uuid", &Type{Kind: KindFunc, Name: "crypto_uuid", Func: &FuncType{Params: nil, Return: String}}, true)
+	c.global.define("math_sqrt", &Type{Kind: KindFunc, Name: "math_sqrt", Func: &FuncType{Params: []*Type{Any}, Return: F64}}, true)
+	c.global.define("math_abs", &Type{Kind: KindFunc, Name: "math_abs", Func: &FuncType{Params: []*Type{Any}, Return: F64}}, true)
+	c.global.define("math_min", &Type{Kind: KindFunc, Name: "math_min", Func: &FuncType{Params: []*Type{Any, Any}, Return: F64}}, true)
+	c.global.define("math_max", &Type{Kind: KindFunc, Name: "math_max", Func: &FuncType{Params: []*Type{Any, Any}, Return: F64}}, true)
+	c.global.define("fs_read", &Type{Kind: KindFunc, Name: "fs_read", Func: &FuncType{Params: []*Type{String}, Return: String}}, true)
+	c.global.define("fs_write", &Type{Kind: KindFunc, Name: "fs_write", Func: &FuncType{Params: []*Type{String, String}, Return: Bool}}, true)
+	c.global.define("fs_exists", &Type{Kind: KindFunc, Name: "fs_exists", Func: &FuncType{Params: []*Type{String}, Return: Bool}}, true)
+
 	// Map, Set, Channel
 	c.types["Map"] = &Type{Kind: KindMap, Name: "Map"}
 	c.types["Set"] = &Type{Kind: KindSet, Name: "Set"}
@@ -509,7 +535,7 @@ func (c *Checker) checkExpr(expr ast.Expression, env *Env) *Type {
 	}
 	switch e := expr.(type) {
 	case *ast.IntLiteral:
-		return I64
+		return I32
 	case *ast.FloatLiteral:
 		return F64
 	case *ast.StringLiteral:

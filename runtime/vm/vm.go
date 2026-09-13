@@ -290,6 +290,26 @@ func New(mod *codegen.Module) *VM {
 	return vm
 }
 
+// RegisterNative registers a custom native function callable from NilLang.
+func (vm *VM) RegisterNative(name string, fn func(args []Value) (Value, error)) {
+	vm.globals[name] = NativeFuncVal(fn)
+}
+
+// GetGlobal returns a global variable value by name.
+func (vm *VM) GetGlobal(name string) (Value, bool) {
+	v, ok := vm.globals[name]
+	return v, ok
+}
+
+// Globals returns a copy of all global variables.
+func (vm *VM) Globals() map[string]Value {
+	res := make(map[string]Value, len(vm.globals))
+	for k, v := range vm.globals {
+		res[k] = v
+	}
+	return res
+}
+
 // GetUITree returns the active UI tree.
 func (vm *VM) GetUITree() *engine.UITree { return vm.UITree }
 
@@ -469,6 +489,8 @@ func (vm *VM) registerBuiltins() {
 		return Nil, nil
 	})
 
+	vm.registerDBBuiltins()
+
 	// Functions from compiled module
 	if vm.module != nil {
 		for _, fn := range vm.module.Functions {
@@ -482,7 +504,13 @@ func (vm *VM) Run() error {
 	if vm.module.MainFunc == nil {
 		return fmt.Errorf("no main function")
 	}
-	return vm.callFunction(vm.module.MainFunc, nil)
+	if err := vm.callFunction(vm.module.MainFunc, nil); err != nil {
+		return err
+	}
+	if userMain := vm.findFunction("main"); userMain != nil && userMain != vm.module.MainFunc {
+		return vm.callFunction(userMain, nil)
+	}
+	return nil
 }
 
 func (vm *VM) push(v Value) {

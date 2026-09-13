@@ -1,0 +1,171 @@
+// pos_app.nil — Declarative UI POS application for NilLang & Alap Framework
+// Demonstrates: Declarative UI Component Hierarchy, State Management,
+// Reactive Cart, Product Catalog, and Checkout Workflow.
+
+@Entry
+@Component
+component POSApp {
+    @State cashier: string = "Cashier #101"
+    @State storeName: string = "Onuron Fresh Market"
+    @State itemCount: i32 = 0
+    @State cartTotal: i32 = 0
+    @State statusMsg: string = "Ready for scanning"
+    @State lastTxn: string = "None"
+
+    build() {
+        Column {
+            // Top Header Bar
+            Row {
+                Text(storeName)
+                    .fontSize(22)
+                    .fontWeight("bold")
+                    .color("#FFFFFF")
+
+                Text(cashier)
+                    .fontSize(14)
+                    .color("#E0E0E0")
+            }
+            .backgroundColor("#176BFF")
+            .padding({ horizontal: 16, vertical: 12 })
+            .width("100%")
+
+            // Two-column Main Workspace
+            Row {
+                // Product Catalog Panel
+                Column {
+                    Text("Product Catalog")
+                        .fontSize(18)
+                        .fontWeight("bold")
+                        .margin({ bottom: 8 })
+
+                    // Product 1: Apple
+                    Row {
+                        Text("Apple ($150)")
+                            .fontSize(16)
+                        Button("Add Apple") {
+                            onClick => {
+                                itemCount = itemCount + 1
+                                cartTotal = cartTotal + 150
+                                statusMsg = "Added 1x Apple"
+                            }
+                        }
+                        .backgroundColor("#34C759")
+                        .color("#FFFFFF")
+                    }
+                    .padding(8)
+
+                    // Product 2: Bread
+                    Row {
+                        Text("Bread ($45)")
+                            .fontSize(16)
+                        Button("Add Bread") {
+                            onClick => {
+                                itemCount = itemCount + 1
+                                cartTotal = cartTotal + 45
+                                statusMsg = "Added 1x Bread"
+                            }
+                        }
+                        .backgroundColor("#34C759")
+                        .color("#FFFFFF")
+                    }
+                    .padding(8)
+
+                    // Product 3: Milk
+                    Row {
+                        Text("Milk ($65)")
+                            .fontSize(16)
+                        Button("Add Milk") {
+                            onClick => {
+                                itemCount = itemCount + 1
+                                cartTotal = cartTotal + 65
+                                statusMsg = "Added 1x Milk"
+                            }
+                        }
+                        .backgroundColor("#34C759")
+                        .color("#FFFFFF")
+                    }
+                    .padding(8)
+
+                    // Product 4: Eggs
+                    Row {
+                        Text("Eggs ($120)")
+                            .fontSize(16)
+                        Button("Add Eggs") {
+                            onClick => {
+                                itemCount = itemCount + 1
+                                cartTotal = cartTotal + 120
+                                statusMsg = "Added 1x Eggs"
+                            }
+                        }
+                        .backgroundColor("#34C759")
+                        .color("#FFFFFF")
+                    }
+                    .padding(8)
+                }
+                .width("60%")
+                .padding(16)
+
+                // Cart & Checkout Panel
+                Column {
+                    Text("Active Cart")
+                        .fontSize(18)
+                        .fontWeight("bold")
+                        .margin({ bottom: 8 })
+
+                    Text("Items: " + itemCount.toString())
+                        .fontSize(16)
+                        .color("#333333")
+
+                    Text("Total: $" + cartTotal.toString())
+                        .fontSize(20)
+                        .fontWeight("bold")
+                        .color("#176BFF")
+                        .margin({ top: 8, bottom: 16 })
+
+                    Text(statusMsg)
+                        .fontSize(14)
+                        .color("#666666")
+                        .margin({ bottom: 16 })
+
+                    Row {
+                        Button("Checkout") {
+                            onClick => {
+                                if itemCount > 0 {
+                                    lastTxn = "TXN-1001"
+                                    statusMsg = "Checkout completed for $" + cartTotal.toString()
+                                    itemCount = 0
+                                    cartTotal = 0
+                                }
+                            }
+                        }
+                        .backgroundColor("#176BFF")
+                        .color("#FFFFFF")
+                        .padding({ horizontal: 24, vertical: 12 })
+
+                        Button("Clear") {
+                            onClick => {
+                                itemCount = 0
+                                cartTotal = 0
+                                statusMsg = "Cart cleared"
+                            }
+                        }
+                        .backgroundColor("#FF3B30")
+                        .color("#FFFFFF")
+                        .padding({ horizontal: 16, vertical: 12 })
+                    }
+
+                    Text("Last Sale: " + lastTxn)
+                        .fontSize(12)
+                        .color("#999999")
+                        .margin({ top: 16 })
+                }
+                .width("40%")
+                .padding(16)
+                .backgroundColor("#F5F5F7")
+            }
+            .width("100%")
+        }
+        .width("100%")
+        .height("100%")
+    }
+}
