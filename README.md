@@ -97,6 +97,8 @@ nil fmt
 # Type-check
 nil check
 
+# `nil check` exits non-zero when lexical, parse, or type errors are found.
+
 # Run tests
 nil test
 

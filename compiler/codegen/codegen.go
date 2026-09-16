@@ -67,6 +67,7 @@ const (
 	OP_JUMP
 	OP_JUMP_IF_FALSE
 	OP_JUMP_IF_TRUE
+	OP_JUMP_IF_NOT_NULL
 
 	// Functions
 	OP_CALL        // call function: arg count in operand
@@ -118,6 +119,7 @@ var opcodeNames = map[Opcode]string{
 	OP_EQ: "EQ", OP_NEQ: "NEQ", OP_LT: "LT", OP_GT: "GT", OP_LTE: "LTE", OP_GTE: "GTE",
 	OP_STR_CONCAT: "STR_CONCAT",
 	OP_JUMP: "JUMP", OP_JUMP_IF_FALSE: "JUMP_IF_FALSE", OP_JUMP_IF_TRUE: "JUMP_IF_TRUE",
+	OP_JUMP_IF_NOT_NULL: "JUMP_IF_NOT_NULL",
 	OP_CALL: "CALL", OP_CALL_METHOD: "CALL_METHOD", OP_RETURN: "RETURN", OP_RETURN_VOID: "RETURN_VOID",
 	OP_NEW_OBJECT: "NEW_OBJECT", OP_NEW_ARRAY: "NEW_ARRAY", OP_NEW_MAP: "NEW_MAP",
 	OP_AWAIT: "AWAIT", OP_SPAWN_TASK: "SPAWN_TASK", OP_CHAN_SEND: "CHAN_SEND", OP_CHAN_RECV: "CHAN_RECV",
@@ -817,6 +819,16 @@ func (g *Generator) genExpr(expr ast.Expression) {
 
 func (g *Generator) genBinary(e *ast.BinaryExpr) {
 	g.genExpr(e.Left)
+	if e.Op == "??" {
+		// Keep the left value on the stack when it is non-null. When it is
+		// null, discard it before evaluating the fallback expression.
+		g.emit(OP_DUP)
+		jmpEnd := g.emit(OP_JUMP_IF_NOT_NULL, 0)
+		g.emit(OP_POP)
+		g.genExpr(e.Right)
+		g.patch(jmpEnd, int32(g.currentPos()))
+		return
+	}
 	g.genExpr(e.Right)
 	switch e.Op {
 	case "+":
@@ -846,9 +858,6 @@ func (g *Generator) genBinary(e *ast.BinaryExpr) {
 	case "&&":
 		g.emit(OP_AND)
 	case "||":
-		g.emit(OP_OR)
-	case "??":
-		// null coalesce: already on stack → runtime handles
 		g.emit(OP_OR)
 	}
 }

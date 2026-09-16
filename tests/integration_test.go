@@ -200,6 +200,32 @@ print(b == false)
 	}
 }
 
+func TestNullCoalesce(t *testing.T) {
+	src := `
+function fallback(): i32 {
+    print("fallback evaluated")
+    return 42
+}
+print(null ?? fallback())
+print(0 ?? fallback())
+print(false ?? fallback())
+print("value" ?? fallback())
+let empty = "" ?? "fallback"
+print(empty.length)
+`
+	out := compile(t, src)
+	lines := strings.Split(out, "\n")
+	expected := []string{"fallback evaluated", "42", "0", "false", "value", "0"}
+	if len(lines) != len(expected) {
+		t.Fatalf("expected %d output lines, got %d: %q", len(expected), len(lines), out)
+	}
+	for i, want := range expected {
+		if lines[i] != want {
+			t.Errorf("line[%d]: expected %q, got %q", i, want, lines[i])
+		}
+	}
+}
+
 func TestMultipleFunctions(t *testing.T) {
 	src := `
 function square(n: i32): i32 {
