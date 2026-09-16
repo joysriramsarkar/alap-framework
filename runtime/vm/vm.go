@@ -720,16 +720,32 @@ func (vm *VM) execute(frame *Frame) error {
 			vm.push(StrVal(a.String() + b.String()))
 		case codegen.OP_SUB:
 			b, a := vm.pop(), vm.pop()
-			vm.push(vm.numOp(a, b, "-"))
+			result, err := vm.numOp(a, b, "-")
+			if err != nil {
+				return err
+			}
+			vm.push(result)
 		case codegen.OP_MUL:
 			b, a := vm.pop(), vm.pop()
-			vm.push(vm.numOp(a, b, "*"))
+			result, err := vm.numOp(a, b, "*")
+			if err != nil {
+				return err
+			}
+			vm.push(result)
 		case codegen.OP_DIV:
 			b, a := vm.pop(), vm.pop()
-			vm.push(vm.numOp(a, b, "/"))
+			result, err := vm.numOp(a, b, "/")
+			if err != nil {
+				return err
+			}
+			vm.push(result)
 		case codegen.OP_MOD:
 			b, a := vm.pop(), vm.pop()
-			vm.push(vm.numOp(a, b, "%"))
+			result, err := vm.numOp(a, b, "%")
+			if err != nil {
+				return err
+			}
+			vm.push(result)
 		case codegen.OP_POW:
 			b, a := vm.pop(), vm.pop()
 			vm.push(FloatVal(math.Pow(a.toFloat(), b.toFloat())))
@@ -791,6 +807,11 @@ func (vm *VM) execute(frame *Frame) error {
 		case codegen.OP_JUMP_IF_TRUE:
 			cond := vm.pop()
 			if cond.Truthy() {
+				frame.ip = int(oper)
+			}
+		case codegen.OP_JUMP_IF_NOT_NULL:
+			cond := vm.pop()
+			if cond.Kind != ValNil {
 				frame.ip = int(oper)
 			}
 
@@ -984,37 +1005,43 @@ func (vm *VM) opAdd(a, b Value) Value {
 	return FloatVal(a.toFloat() + b.toFloat())
 }
 
-func (vm *VM) numOp(a, b Value, op string) Value {
+func (vm *VM) numOp(a, b Value, op string) (Value, error) {
 	if a.Kind == ValInt && b.Kind == ValInt {
 		switch op {
 		case "-":
-			return IntVal(a.IntVal - b.IntVal)
+			return IntVal(a.IntVal - b.IntVal), nil
 		case "*":
-			return IntVal(a.IntVal * b.IntVal)
+			return IntVal(a.IntVal * b.IntVal), nil
 		case "/":
 			if b.IntVal == 0 {
-				return Nil
+				return Nil, fmt.Errorf("integer division by zero")
 			}
-			return IntVal(a.IntVal / b.IntVal)
+			return IntVal(a.IntVal / b.IntVal), nil
 		case "%":
 			if b.IntVal == 0 {
-				return Nil
+				return Nil, fmt.Errorf("integer modulo by zero")
 			}
-			return IntVal(a.IntVal % b.IntVal)
+			return IntVal(a.IntVal % b.IntVal), nil
 		}
 	}
 	fa, fb := a.toFloat(), b.toFloat()
 	switch op {
 	case "-":
-		return FloatVal(fa - fb)
+		return FloatVal(fa - fb), nil
 	case "*":
-		return FloatVal(fa * fb)
+		return FloatVal(fa * fb), nil
 	case "/":
-		return FloatVal(fa / fb)
+		if fb == 0 {
+			return Nil, fmt.Errorf("floating-point division by zero")
+		}
+		return FloatVal(fa / fb), nil
 	case "%":
-		return FloatVal(math.Mod(fa, fb))
+		if fb == 0 {
+			return Nil, fmt.Errorf("floating-point modulo by zero")
+		}
+		return FloatVal(math.Mod(fa, fb)), nil
 	}
-	return Nil
+	return Nil, fmt.Errorf("unsupported numeric operator %q", op)
 }
 
 // callMethod dispatches method calls on values.

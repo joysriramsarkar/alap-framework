@@ -242,7 +242,9 @@ func compileFile(filename string) (*codegen.Module, error) {
 
 	checker := types.New()
 	checker.CheckProgram(prog)
-	// non-fatal type errors in alpha
+	if len(checker.Errors()) > 0 {
+		return nil, fmt.Errorf("type error: %s", strings.Join(checker.Errors(), "\n"))
+	}
 
 	modName := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 	gen := codegen.New(modName)
@@ -381,8 +383,8 @@ func cmdInit(name string) {
 		filepath.Join(name, "alap.yaml"):               alapYaml,
 		filepath.Join(name, "src", "main.nil"):          mainNil,
 		filepath.Join(name, "src", "App.nil"):           appNil,
-		filepath.Join(name, "tests", "main_test.nil"):   testNil,
-		filepath.Join(name, "README.md"):                readme,
+		filepath.Join(name, "tests", "main_test.nil"): testNil,
+		filepath.Join(name, "README.md"):               readme,
 	}
 	for path, tmplStr := range files {
 		f, err := os.Create(path)
@@ -435,16 +437,10 @@ func cmdBuild(platform string) {
 }
 
 func buildOnuron() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	bytecode, err := compileEntryBytecode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build onuron: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := onuron.New()
@@ -459,16 +455,10 @@ func buildOnuron() {
 }
 
 func buildAndroid() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	bytecode, err := compileEntryBytecode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build android: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := android.New()
@@ -485,16 +475,10 @@ func buildAndroid() {
 }
 
 func buildIOS() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	bytecode, err := compileEntryBytecode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build ios: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := ios.New()
@@ -510,16 +494,10 @@ func buildIOS() {
 }
 
 func buildLinux() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	bytecode, err := compileEntryBytecode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build linux: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := linux.New()
@@ -564,7 +542,8 @@ func cmdCheck() {
 		checker := types.New()
 		checker.CheckProgram(prog)
 		if len(checker.Errors()) > 0 {
-			fmt.Printf("  ⚠ %s (type warnings: %s)\n", f, strings.Join(checker.Errors(), "; "))
+			fmt.Printf("  ✗ %s (type errors: %s)\n", f, strings.Join(checker.Errors(), "; "))
+			ok = false
 		} else {
 			fmt.Printf("  ✓ %s\n", f)
 		}
@@ -708,4 +687,19 @@ func findNilFiles(dir string) []string {
 		return nil
 	})
 	return files
+}
+
+func compileEntryBytecode() ([]byte, error) {
+	nils := findNilFiles("src")
+	if len(nils) == 0 {
+		nils = findNilFiles(".")
+	}
+	if len(nils) == 0 {
+		return nil, fmt.Errorf("no .nil entry file found")
+	}
+	mod, err := compileFile(nils[0])
+	if err != nil {
+		return nil, err
+	}
+	return codegen.Serialize(mod), nil
 }

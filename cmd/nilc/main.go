@@ -136,7 +136,7 @@ func compile(filename, src string) *codegen.Module {
 		for _, e := range checker.Errors() {
 			fmt.Fprintln(os.Stderr, "type:", e)
 		}
-		// type errors are warnings in this version; do not abort
+		return nil
 	}
 
 	// 4. Code generation
