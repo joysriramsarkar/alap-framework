@@ -145,7 +145,7 @@ func (a *Adapter) SendNotification(title, body string) error {
 		return fmt.Errorf("permission denied: notifications")
 	}
 
-	payload := []byte(fmt.Sprintf(`{"title":%q,"body":%q}`, title, body))
+	payload := fmt.Appendf(nil, `{"title":%q,"body":%q}`, title, body)
 	_, err := a.BusClient.Call("org.onuron.NotificationService", "Notify", payload)
 	if err != nil {
 		// Fallback to legacy service identifier if needed
