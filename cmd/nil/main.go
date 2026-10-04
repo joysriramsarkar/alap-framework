@@ -403,7 +403,84 @@ func cmdInit(name string) {
 	fmt.Println("Happy coding with NilLang! 🚀")
 }
 
+type projectInfo struct {
+	Name    string
+	Version string
+	Entry   string
+}
+
+func getProjectInfo() projectInfo {
+	info := projectInfo{
+		Name:    "AlapApp",
+		Version: "0.1.0",
+		Entry:   "src/main.nil",
+	}
+	manifestPath := "alap.yaml"
+	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
+		if _, err2 := os.Stat("nilx.yaml"); err2 == nil {
+			manifestPath = "nilx.yaml"
+		} else {
+			return info
+		}
+	}
+	data, err := os.ReadFile(manifestPath)
+	if err != nil {
+		return info
+	}
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "//") || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		parts := strings.SplitN(trimmed, ":", 2)
+		if len(parts) == 2 {
+			k := strings.TrimSpace(parts[0])
+			v := strings.Trim(strings.TrimSpace(parts[1]), "\"'")
+			switch k {
+			case "name":
+				if v != "" {
+					info.Name = v
+				}
+			case "version":
+				if v != "" {
+					info.Version = v
+				}
+			case "entry":
+				if v != "" {
+					info.Entry = v
+				}
+			}
+		}
+	}
+	return info
+}
+
+func buildEntryBytecode(info projectInfo) ([]byte, error) {
+	entryFile := info.Entry
+	if _, err := os.Stat(entryFile); os.IsNotExist(err) {
+		nils := findNilFiles("src")
+		if len(nils) == 0 {
+			nils = findNilFiles(".")
+		}
+		if len(nils) > 0 {
+			entryFile = nils[0]
+		}
+	}
+	mod, err := compileFile(entryFile)
+	if err != nil {
+		return nil, err
+	}
+	return codegen.Serialize(mod), nil
+}
+
 func cmdRun(file string) {
+	if file == "src/main.nil" {
+		info := getProjectInfo()
+		if _, err := os.Stat(info.Entry); err == nil {
+			file = info.Entry
+		}
+	}
 	mod, err := compileFile(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "nil run: %v\n", err)
@@ -414,6 +491,13 @@ func cmdRun(file string) {
 	if err := runner.Run(); err != nil {
 		fmt.Fprintf(os.Stderr, "nil run: runtime error: %v\n", err)
 		os.Exit(1)
+	}
+	if tree := runner.GetUITree(); tree != nil && tree.Root != nil {
+		if strings.TrimSpace(runner.Output()) == "" {
+			runner.ComputeUILayout(800, 600)
+			fmt.Println("--- Rendered UI Tree ---")
+			fmt.Println(tree.RenderTextTree())
+		}
 	}
 }
 
@@ -435,19 +519,16 @@ func cmdBuild(platform string) {
 }
 
 func buildOnuron() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	info := getProjectInfo()
+	bytecode, err := buildEntryBytecode(info)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build onuron: error: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := onuron.New()
+	adapter.AppName = info.Name
+	adapter.Version = info.Version
 	outDir := filepath.Join("build")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
 		fmt.Fprintf(os.Stderr, "nil build onuron: error: %v\n", err)
@@ -459,19 +540,15 @@ func buildOnuron() {
 }
 
 func buildAndroid() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	info := getProjectInfo()
+	bytecode, err := buildEntryBytecode(info)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build android: error: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := android.New()
+	adapter.AppName = info.Name
 	outDir := filepath.Join("build", "android")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
 		fmt.Fprintf(os.Stderr, "nil build android: error: %v\n", err)
@@ -485,19 +562,15 @@ func buildAndroid() {
 }
 
 func buildIOS() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	info := getProjectInfo()
+	bytecode, err := buildEntryBytecode(info)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build ios: error: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := ios.New()
+	adapter.AppName = info.Name
 	outDir := filepath.Join("build", "ios")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
 		fmt.Fprintf(os.Stderr, "nil build ios: error: %v\n", err)
@@ -510,19 +583,16 @@ func buildIOS() {
 }
 
 func buildLinux() {
-	var bytecode []byte
-	nils := findNilFiles("src")
-	if len(nils) == 0 {
-		nils = findNilFiles(".")
-	}
-	if len(nils) > 0 {
-		mod, err := compileFile(nils[0])
-		if err == nil {
-			bytecode = codegen.Serialize(mod)
-		}
+	info := getProjectInfo()
+	bytecode, err := buildEntryBytecode(info)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "nil build linux: error: %v\n", err)
+		os.Exit(1)
 	}
 
 	adapter := linux.New()
+	adapter.AppName = info.Name
+	adapter.AppID = "org.alap." + strings.ToLower(strings.ReplaceAll(info.Name, " ", "_"))
 	outDir := filepath.Join("build")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
 		fmt.Fprintf(os.Stderr, "nil build linux: error: %v\n", err)
@@ -530,7 +600,7 @@ func buildLinux() {
 	}
 	fmt.Printf("✓ Built for Linux desktop → build/linux/\n")
 	fmt.Printf("  • AppDir bundle: build/linux/AppDir\n")
-	fmt.Printf("  • Flatpak manifest: build/linux/org.alap.app.json\n")
+	fmt.Printf("  • Flatpak manifest: build/linux/%s.json\n", adapter.AppID)
 	fmt.Printf("  • Bytecode bundled: %d bytes\n\n", len(bytecode))
 }
 

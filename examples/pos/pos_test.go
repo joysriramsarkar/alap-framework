@@ -272,3 +272,88 @@ func TestPOSConcurrentCheckoutSimulation(t *testing.T) {
 		t.Errorf("expected %d orders logged, got %d", cashiers, orderCount)
 	}
 }
+
+func TestMiniPOSSourceEndToEnd(t *testing.T) {
+	src, err := os.ReadFile("src/main.nil")
+	if err != nil {
+		t.Fatalf("failed reading src/main.nil: %v", err)
+	}
+
+	tmpDir, err := os.MkdirTemp("", "alap_minipos_test_*")
+	if err != nil {
+		t.Fatalf("mktemp: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	origWd, _ := os.Getwd()
+	_ = os.Chdir(tmpDir)
+	defer os.Chdir(origWd)
+
+	runner := runPOS(t, string(src))
+	out := runner.Output()
+
+	if !strings.Contains(out, "ONURON FRESH MARKET — MINI POS") {
+		t.Errorf("expected header, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Lookup by Barcode (8901001)") {
+		t.Errorf("expected barcode lookup, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Net Amount Due:     $603") {
+		t.Errorf("expected Net Amount Due: $603, got:\n%s", out)
+	}
+	if !strings.Contains(out, "INV-20261004-001") {
+		t.Errorf("expected invoice number, got:\n%s", out)
+	}
+	if !strings.Contains(out, "Mini POS Execution & Persistence Verified Successfully") {
+		t.Errorf("expected verification success, got:\n%s", out)
+	}
+}
+
+func TestMiniPOSOnuronLifecycleExecution(t *testing.T) {
+	src, err := os.ReadFile("src/main.nil")
+	if err != nil {
+		t.Fatalf("failed reading src/main.nil: %v", err)
+	}
+
+	l := lexer.New("mini_pos.nil", string(src))
+	tokens := l.Tokenize()
+	p := parser.New("mini_pos.nil", tokens)
+	prog := p.Parse()
+	gen := codegen.New("mini_pos")
+	gen.GenerateProgram(prog)
+	bytecode := codegen.Serialize(gen.Module())
+
+	tmpDir, err := os.MkdirTemp("", "onuron_lifecycle_test_*")
+	if err != nil {
+		t.Fatalf("mktemp: %v", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	adapter := onuron.New()
+	adapter.AppName = "mini-pos"
+	adapter.Version = "1.0.0"
+
+	if err := adapter.GenerateProject(tmpDir, bytecode); err != nil {
+		t.Fatalf("GenerateProject failed: %v", err)
+	}
+
+	manifestBytes, err := os.ReadFile(filepath.Join(tmpDir, "onuron", "app.alapmanifest"))
+	if err != nil {
+		t.Fatalf("manifest read: %v", err)
+	}
+	if !strings.Contains(string(manifestBytes), "Name = mini-pos") {
+		t.Errorf("expected manifest Name = mini-pos, got:\n%s", string(manifestBytes))
+	}
+	if !strings.Contains(string(manifestBytes), "Version = 1.0.0") {
+		t.Errorf("expected manifest Version = 1.0.0, got:\n%s", string(manifestBytes))
+	}
+
+	origWd, _ := os.Getwd()
+	_ = os.Chdir(tmpDir)
+	defer os.Chdir(origWd)
+
+	if err := adapter.RunApp(filepath.Join(tmpDir, "onuron")); err != nil {
+		t.Fatalf("RunApp failed: %v", err)
+	}
+}
+

@@ -1,23 +1,22 @@
-// alap.yaml — Alap POS Project Manifest
-name: pos
-version: 0.1.0
-description: "Point of Sale - NilLang + Alap vertical slice"
+# alap.yaml — Alap Mini POS Project Manifest
+name: mini-pos
+version: 1.0.0
+description: "Mini POS — NilLang + Alap cross-platform reference app (Catalog, Cart, Checkout, SQLite)"
 
 entry: src/main.nil
 
 permissions:
   - storage.read
   - storage.write
+  - notifications
 
 targets:
-  onuron:
-    arch: arm64
+  linux:
+    display: wayland
   android:
     minSdk: 26
     targetSdk: 35
-  ios:
-    minVersion: "16.0"
-  linux:
-    display: wayland
+  onuron:
+    arch: arm64
 
 dependencies: {}

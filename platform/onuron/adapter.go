@@ -31,6 +31,9 @@ type Adapter struct {
 	initialized   bool
 	activeVM      *vm.VM
 	capabilities  map[string]bool
+	AppName       string
+	Version       string
+	PackageID     string
 }
 
 // Event represents a platform input event.
@@ -67,6 +70,9 @@ func New() *Adapter {
 		KernelVersion: "Onuron-0.1-vulkan",
 		DisplayServer: "wayland",
 		GPUBackend:    "vulkan",
+		AppName:       "AlapApp",
+		Version:       "0.1.0",
+		PackageID:     "org.onuron.app",
 		BusClient:     nilbus.NewClient(""),
 		Renderer:      nilui.NewRenderer("AlapApp", 1080, 1920),
 		HAL:           nilhal.NewHAL(),
@@ -237,16 +243,24 @@ func (a *Adapter) GenerateProject(outputDir string, bytecode []byte) error {
 		}
 	}
 
-	manifest := `[NilAx]
-Name = AlapApp
-Version = 0.1.0
+	name := a.AppName
+	if name == "" {
+		name = "AlapApp"
+	}
+	ver := a.Version
+	if ver == "" {
+		ver = "0.1.0"
+	}
+	manifest := fmt.Sprintf(`[NilAx]
+Name = %s
+Version = %s
 Platform = onuron
 Entry = bin/main.nabc
 Permissions = storage.read, notifications, sensors, network
-DisplayServer = wayland
-GPUBackend = vulkan
+DisplayServer = %s
+GPUBackend = %s
 KernelMinVersion = 0.1.0
-`
+`, name, ver, a.DisplayServer, a.GPUBackend)
 	launcherSh := `#!/bin/sh
 # onuron-launcher.sh — Native Onuron Wayland/Vulkan app launcher
 DIR="$(cd "$(dirname "$0")" && pwd)"
