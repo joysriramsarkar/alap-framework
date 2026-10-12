@@ -28,6 +28,9 @@ jobs:
       - name: Verify module dependencies
         run: go mod verify
 
+      - name: Vet
+        run: go vet ./...
+
       - name: Run unit & integration tests
         run: go test -v ./...
 

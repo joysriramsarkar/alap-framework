@@ -15,23 +15,32 @@ import (
 	"unsafe"
 )
 
+// Runtime handles cross the C ABI as an opaque pointer. A handle is really an
+// integer index (not a Go pointer), so it is boxed in C-allocated memory. That
+// way the Go side never converts a uintptr back into an unsafe.Pointer, a
+// conversion the Go runtime explicitly forbids.
+
 //export nilx_runtime_create
 func nilx_runtime_create() C.NilContext {
 	id := CreateRuntime()
-	return C.NilContext(unsafe.Pointer(id))
+	box := C.malloc(C.size_t(unsafe.Sizeof(uintptr(0))))
+	*(*C.uintptr_t)(box) = C.uintptr_t(id)
+	return C.NilContext(box)
 }
 
 //export nilx_runtime_destroy
 func nilx_runtime_destroy(ctx C.NilContext) {
-	id := uintptr(ctx)
-	DestroyRuntime(id)
+	if ctx == nil {
+		return
+	}
+	DestroyRuntime(handleOf(ctx))
+	C.free(unsafe.Pointer(ctx))
 }
 
 //export nilx_runtime_run
 func nilx_runtime_run(ctx C.NilContext, nabc *C.uint8_t, nabc_len C.size_t) C.NilResult {
-	id := uintptr(ctx)
 	data := C.GoBytes(unsafe.Pointer(nabc), C.int(nabc_len))
-	err := ExecuteBytecode(id, data)
+	err := ExecuteBytecode(handleOf(ctx), data)
 	var res C.NilResult
 	if err != nil {
 		res.ok = C.bool(false)
@@ -46,17 +55,23 @@ func nilx_runtime_run(ctx C.NilContext, nabc *C.uint8_t, nabc_len C.size_t) C.Ni
 
 //export nilx_runtime_dispatch_touch
 func nilx_runtime_dispatch_touch(ctx C.NilContext, x C.float, y C.float) C.bool {
-	id := uintptr(ctx)
-	handled := DispatchTouchEvent(id, float64(x), float64(y))
+	handled := DispatchTouchEvent(handleOf(ctx), float64(x), float64(y))
 	return C.bool(handled)
 }
 
 //export nilx_runtime_get_ui_json
 func nilx_runtime_get_ui_json(ctx C.NilContext) *C.char {
-	id := uintptr(ctx)
-	jsonStr, err := GetUIRootJSON(id)
+	jsonStr, err := GetUIRootJSON(handleOf(ctx))
 	if err != nil {
 		return C.CString("{}")
 	}
 	return C.CString(jsonStr)
+}
+
+// handleOf unwraps the opaque C handle into the registered Go runtime ID.
+func handleOf(ctx C.NilContext) uintptr {
+	if ctx == nil {
+		return 0
+	}
+	return uintptr(*(*C.uintptr_t)(unsafe.Pointer(ctx)))
 }
