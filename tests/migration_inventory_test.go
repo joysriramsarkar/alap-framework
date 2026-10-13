@@ -33,12 +33,12 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 	}{
 		// Row 1 (M4 done): canonical `fn` + `->` — migrates cleanly.
 		{"examples/hello/main.nil", true, ""},
-		// TODO(M4): same `function` spelling.
-		{"examples/calculator/main.nil", false, "E0004"},
-		// TODO(M4): same `function` spelling.
-		{"examples/counter/main.nil", false, "E0004"},
-		// TODO(M4): same `function` spelling.
-		{"examples/todo/main.nil", false, "E0004"},
+		// Row 2 (M4 done): `fn` + `->` + `Int` + expression match arms.
+		{"examples/calculator/main.nil", true, ""},
+		// Row 2 (M4 done): canonical `fn` + `->` + commas + named literals.
+		{"examples/counter/main.nil", true, ""},
+		// Row 2 (M4 done): canonical `fn` + `->` + commas + named literals.
+		{"examples/todo/main.nil", true, ""},
 		// TODO(M4): component-call syntax differs from canonical `component`.
 		{"examples/social/main.nil", false, "E0004"},
 		// TODO(M4): web-app surface is outside the canonical grammar.

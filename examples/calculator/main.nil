@@ -1,32 +1,25 @@
 // calculator.nil — NilLang advanced calculator
 // Demonstrates: match, recursion, string operations, error handling
-// Run: nilc -in examples/calculator/main.nil -run
+// Run: alapc -in examples/calculator/main.nil -run
+// Canonical spelling (M4): `fn` + `->` + expression match arms.
 
-function calc(a: i32, b: i32, op: string): i32 {
-    match op {
-        "+" => { return a + b }
-        "-" => { return a - b }
-        "*" => { return a * b }
-        "/" => {
-            if b == 0 {
-                print("Error: division by zero!")
-                return 0
-            }
-            return a / b
-        }
-        "%" => {
-            if b == 0 {
-                print("Error: modulo by zero!")
-                return 0
-            }
-            return a % b
-        }
-    }
-    print("Unknown operator: " + op)
+fn printZero(msg: string) -> Int {
+    print(msg)
     return 0
 }
 
-function isPrime(n: i32): bool {
+fn calc(a: Int, b: Int, op: string) -> Int {
+    match op {
+        "+" => a + b,
+        "-" => a - b,
+        "*" => a * b,
+        "/" => b == 0 ? printZero("Error: division by zero!") : a / b,
+        "%" => b == 0 ? printZero("Error: modulo by zero!") : a % b,
+        _ => printZero("Unknown operator: " + op)
+    }
+}
+
+fn isPrime(n: Int) -> bool {
     if n < 2 {
         return false
     }
@@ -36,7 +29,7 @@ function isPrime(n: i32): bool {
     if n % 2 == 0 {
         return false
     }
-    let i: i32 = 3
+    let i: Int = 3
     while i * i <= n {
         if n % i == 0 {
             return false
@@ -46,20 +39,20 @@ function isPrime(n: i32): bool {
     return true
 }
 
-function gcd(a: i32, b: i32): i32 {
+fn gcd(a: Int, b: Int) -> Int {
     while b != 0 {
-        let temp: i32 = b
+        let temp: Int = b
         b = a % b
         a = temp
     }
     return a
 }
 
-function lcm(a: i32, b: i32): i32 {
+fn lcm(a: Int, b: Int) -> Int {
     return a / gcd(a, b) * b
 }
 
-function power(base: i32, exp: i32): i32 {
+fn power(base: Int, exp: Int) -> Int {
     if exp == 0 {
         return 1
     }
@@ -67,47 +60,47 @@ function power(base: i32, exp: i32): i32 {
         return base
     }
     if exp % 2 == 0 {
-        let half: i32 = power(base, exp / 2)
+        let half: Int = power(base, exp / 2)
         return half * half
     }
     return base * power(base, exp - 1)
 }
 
-function abs(n: i32): i32 {
+fn abs(n: Int) -> Int {
     if n < 0 {
         return 0 - n
     }
     return n
 }
 
-function max(a: i32, b: i32): i32 {
+fn max(a: Int, b: Int) -> Int {
     if a > b { return a }
     return b
 }
 
-function min(a: i32, b: i32): i32 {
+fn min(a: Int, b: Int) -> Int {
     if a < b { return a }
     return b
 }
 
-function main(): void {
+fn main() -> Void {
     print("=== NilLang Calculator ===")
     print("")
 
     // Basic operations
     print("--- Basic Arithmetic ---")
-    let ops: string[] = ["+", "-", "*", "/", "%"]
-    let i: i32 = 0
+    let ops: Array<string> = ["+", "-", "*", "/", "%"]
+    let i: Int = 0
     while i < ops.length {
         let op: string = ops[i]
-        let result: i32 = calc(17, 5, op)
+        let result: Int = calc(17, 5, op)
         print("17 " + op + " 5 = " + result.toString())
         i = i + 1
     }
 
     print("")
     print("--- Powers ---")
-    let j: i32 = 0
+    let j: Int = 0
     while j <= 10 {
         print("2^" + j.toString() + " = " + power(2, j).toString())
         j = j + 1
@@ -116,7 +109,7 @@ function main(): void {
     print("")
     print("--- Prime Numbers up to 50 ---")
     let primes: string = ""
-    let k: i32 = 2
+    let k: Int = 2
     while k <= 50 {
         if isPrime(k) {
             if primes == "" {

@@ -32,4 +32,5 @@
 ## এই সেশনে
 - [x] 13 Oct: `go test ./...` সবুজ (Phase 0)।
 - [x] 13 Oct: M4 start — dependency + inventory (commit `6aa0dc5`)।
-- [x] 13 Oct: M4 row 1 (hello) — alap parser-এ `fn` + `->` (backward compat), hello migrate, দুই toolchain সবুজ, inventory flip — নিচে।
+- [x] 13 Oct: M4 row 1 (hello) — `fn` + `->` (commit `c4a8411`)।
+- [x] 13 Oct: M4 row 2 (calculator/counter/todo) — নিচে।

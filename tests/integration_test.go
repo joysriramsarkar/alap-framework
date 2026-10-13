@@ -569,3 +569,41 @@ func TestReactiveState(t *testing.T) {
 		t.Errorf("expected unsubscribed listener not to receive 100, got %d", updatedVal)
 	}
 }
+
+// TestMatchValueFlows pins M4 match convergence end to end: expression arms,
+// the `_` wildcard, and a tail match returned from its function.
+func TestMatchValueFlows(t *testing.T) {
+	src := `
+fn pick(op: string) -> i32 {
+    match op {
+        "+" => 100,
+        _ => 200
+    }
+}
+print(pick("+"))
+print(pick("x"))
+`
+	out := compile(t, src)
+	if out != "100\n200" {
+		t.Errorf("expected '100\\n200', got %q", out)
+	}
+}
+
+// TestMatchStatementFormKeepsWorking pins backward compatibility: classic
+// block arms with explicit returns behave exactly as before value matches.
+func TestMatchStatementFormKeepsWorking(t *testing.T) {
+	src := `
+fn pick(op: string) -> i32 {
+    match op {
+        "+" => { return 100 }
+        _ => { return 200 }
+    }
+}
+print(pick("+"))
+print(pick("x"))
+`
+	out := compile(t, src)
+	if out != "100\n200" {
+		t.Errorf("expected '100\\n200', got %q", out)
+	}
+}

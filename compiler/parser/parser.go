@@ -591,6 +591,11 @@ func (p *Parser) parseStructDecl(decs []*ast.Decorator) *ast.StructDecl {
 		p.consume(lexer.TOKEN_COLON)
 		ftype := p.parseTypeAnnotation()
 		p.skipSemicolon()
+		// Canonical `,` separators (M4 convergence); newline-separated
+		// fields keep working.
+		if p.check(lexer.TOKEN_COMMA) {
+			p.advance()
+		}
 		fields = append(fields, &ast.StructField{Name: fname, Type: ftype, Optional: optional, Pos: fpos})
 	}
 	p.consume(lexer.TOKEN_RBRACE)
@@ -1024,7 +1029,23 @@ func (p *Parser) parseMatch() *ast.MatchStatement {
 	for !p.check(lexer.TOKEN_RBRACE) && !p.check(lexer.TOKEN_EOF) {
 		pat := p.parseExpression()
 		p.consume(lexer.TOKEN_ARROW)
-		body := p.parseBlock()
+		// Canonical expression arm (`"+" => a + b`, M4 convergence) desugars
+		// to a block yielding the expression, so both spellings share the
+		// value-producing match below. Block arms keep working as before.
+		var body *ast.BlockStatement
+		if p.check(lexer.TOKEN_LBRACE) {
+			body = p.parseBlock()
+		} else {
+			expr := p.parseExpression()
+			body = &ast.BlockStatement{
+				Body: []ast.Statement{&ast.ExprStatement{Expr: expr, Pos: pos}},
+				Pos:  pos,
+			}
+			// Arms separate by comma or newline, like before.
+			if p.check(lexer.TOKEN_COMMA) {
+				p.advance()
+			}
+		}
 		stmt.Arms = append(stmt.Arms, &ast.MatchArm{Pattern: pat, Body: body})
 	}
 	p.consume(lexer.TOKEN_RBRACE)
@@ -1293,6 +1314,17 @@ func (p *Parser) parsePrimary() ast.Expression {
 		return &ast.NullLiteral{Pos: pos}
 	case lexer.TOKEN_IDENT:
 		p.advance()
+		// Named struct literal: `Counter { value: 1 }` (M4 convergence).
+		// The name is the static type — the canonical toolchain enforces it;
+		// at runtime the value is a plain object, so only the fields travel.
+		//
+		// A bare `{` after an identifier more often opens a block
+		// (`if x { ... }`), so this commits only on `IDENT { IDENT :` —
+		// a field list, which no block statement starts with.
+		if p.check(lexer.TOKEN_LBRACE) && p.isStructLiteralAhead() {
+			p.advance()
+			return &ast.ObjectLiteral{Fields: p.parseObjectFields(), Pos: pos}
+		}
 		return &ast.Identifier{Name: tok.Literal, Pos: pos}
 	case lexer.TOKEN_THIS:
 		p.advance()
@@ -1328,19 +1360,7 @@ func (p *Parser) parsePrimary() ast.Expression {
 		return &ast.ArrayLiteral{Elements: elems, Pos: pos}
 	case lexer.TOKEN_LBRACE:
 		p.advance()
-		var fields []ast.ObjectField
-		for !p.check(lexer.TOKEN_RBRACE) && !p.check(lexer.TOKEN_EOF) {
-			fpos := p.peek().Pos
-			key := p.parseIdent()
-			p.consume(lexer.TOKEN_COLON)
-			val := p.parseExpression()
-			fields = append(fields, ast.ObjectField{Name: key, Value: val, Pos: fpos})
-			if !p.check(lexer.TOKEN_RBRACE) {
-				p.consume(lexer.TOKEN_COMMA)
-			}
-		}
-		p.consume(lexer.TOKEN_RBRACE)
-		return &ast.ObjectLiteral{Fields: fields, Pos: pos}
+		return &ast.ObjectLiteral{Fields: p.parseObjectFields(), Pos: pos}
 	case lexer.TOKEN_LPAREN:
 		// arrow function or grouped expression
 		if p.isArrowFunc() {
@@ -1361,6 +1381,36 @@ func (p *Parser) parsePrimary() ast.Expression {
 		p.file, pos.Line, pos.Column, tok.Type, tok.Literal))
 	p.advance()
 	return &ast.NullLiteral{Pos: pos}
+}
+
+// parseObjectFields parses `{ k: v, ... }` after the opening brace.
+func (p *Parser) parseObjectFields() []ast.ObjectField {
+	var fields []ast.ObjectField
+	for !p.check(lexer.TOKEN_RBRACE) && !p.check(lexer.TOKEN_EOF) {
+		fpos := p.peek().Pos
+		key := p.parseIdent()
+		p.consume(lexer.TOKEN_COLON)
+		val := p.parseExpression()
+		fields = append(fields, ast.ObjectField{Name: key, Value: val, Pos: fpos})
+		if !p.check(lexer.TOKEN_RBRACE) {
+			p.consume(lexer.TOKEN_COMMA)
+		}
+	}
+	p.consume(lexer.TOKEN_RBRACE)
+	return fields
+}
+
+// isStructLiteralAhead reports whether the upcoming `{ IDENT :` starts a
+// named struct literal's field list. The caller has seen `Name` and `peek()`
+// is `{`. A bare `{` after an identifier more often opens a block
+// (`if x { ... }`), and no block statement starts with `IDENT :`, so the
+// two-token lookahead disambiguates without backtracking.
+func (p *Parser) isStructLiteralAhead() bool {
+	t := p.peekAt(1)
+	if t.Type != lexer.TOKEN_IDENT && !isContextualIdent(t.Type) {
+		return false
+	}
+	return p.peekAt(2).Type == lexer.TOKEN_COLON
 }
 
 func (p *Parser) isArrowFunc() bool {
