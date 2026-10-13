@@ -30,5 +30,5 @@
 - `go test ./...` + `go vet` + `golangci-lint`; উদাহরণ-অ্যাপ headless render golden; `docs/*.md` ক্রস-লিংক।
 
 ## এই সেশনে
-- [ ] `go test ./...` পুনর্যাচাই + ফলাফল রেকর্ড।
-- [ ] `.gitignore` hygiene (pos.db/build artifacts) — ছোট, নিরাপদ PR-আকারে।
+- [x] 13 Oct: `go test ./...` সবুজ (Phase 0)।
+- [x] 13 Oct: M4 start — nilLang module dependency (`require` + sibling `replace`, stdlib-only import closure তাই go.sum খালি) + canonical migration inventory (`tests/migration_inventory_test.go`: 8 example file, সবাই canonical reject — প্রথম divergence code সহ পিন; row flip = convergence)।
