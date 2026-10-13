@@ -9,12 +9,20 @@ package tests
 // row flips to wantOK=true (and the stale wantCode is deleted) — that is the
 // whole migration, one row at a time.
 //
+// Scope separates what must converge from what is intentionally Alap:
+//   - "core": the shared language surface — rows flip to wantOK as M4 lands.
+//   - "ui": Alap's declarative UI DSL (components, build blocks, platform
+//     views), which RELATIONSHIP.md keeps as alap's preserved value. These
+//     rows pin the canonical *rejection* at the UI boundary and, via
+//     TestUiExamplesRunOnAlap below, prove the Alap toolchain runs them.
+//
 // The table is exhaustive: adding an example without a row fails the count
 // check below.
 
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	nilfrontend "github.com/joysriramsarkar/nilLang/compiler/frontend"
@@ -27,26 +35,29 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 	}
 
 	cases := []struct {
-		file     string
-		wantOK   bool
-		wantCode string // first diagnostic code when wantOK is false
+		file       string
+		scope      string // "core" or "ui" (see above)
+		wantOK     bool
+		wantCode   string // first diagnostic code when wantOK is false
+		alapMarker string // ui only: substring the Alap run output must contain
 	}{
 		// Row 1 (M4 done): canonical `fn` + `->` — migrates cleanly.
-		{"examples/hello/main.nil", true, ""},
+		{"examples/hello/main.nil", "core", true, "", ""},
 		// Row 2 (M4 done): `fn` + `->` + `Int` + expression match arms.
-		{"examples/calculator/main.nil", true, ""},
+		{"examples/calculator/main.nil", "core", true, "", ""},
 		// Row 2 (M4 done): canonical `fn` + `->` + commas + named literals.
-		{"examples/counter/main.nil", true, ""},
+		{"examples/counter/main.nil", "core", true, "", ""},
 		// Row 2 (M4 done): canonical `fn` + `->` + commas + named literals.
-		{"examples/todo/main.nil", true, ""},
-		// TODO(M4): component-call syntax differs from canonical `component`.
-		{"examples/social/main.nil", false, "E0004"},
+		{"examples/todo/main.nil", "core", true, "", ""},
+		// Row 3 (M4 done): logic migrated (`fn`/`->`/`Int`/`Void`/`Array`/commas/named
+		// literals); `component`/`build()` UI DSL stays Alap by design.
+		{"examples/social/main.nil", "ui", false, "E0004", "=== Alap Social Feed ==="},
 		// TODO(M4): web-app surface is outside the canonical grammar.
-		{"examples/web-app/main.nil", false, "E0001"},
+		{"examples/web-app/main.nil", "core", false, "E0001", ""},
 		// TODO(M4): same `function` spelling (reference POS app).
-		{"examples/pos/src/main.nil", false, "E0004"},
+		{"examples/pos/src/main.nil", "core", false, "E0004", ""},
 		// TODO(M4): ArkUI `@Component`/`build()` vs canonical keywords.
-		{"examples/pos/src/pos_app.nil", false, "E0001"},
+		{"examples/pos/src/pos_app.nil", "core", false, "E0001", ""},
 	}
 
 	const wantFiles = 8
@@ -71,6 +82,9 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.file, func(t *testing.T) {
+			if tc.scope != "core" && tc.scope != "ui" {
+				t.Fatalf("row %q has scope %q, want core or ui", tc.file, tc.scope)
+			}
 			src, err := os.ReadFile(filepath.Join(root, tc.file))
 			if err != nil {
 				t.Fatal(err)
@@ -93,6 +107,36 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 			}
 			if got != tc.wantCode {
 				t.Fatalf("first diagnostic drifted: got %q, want %q — update the row (progress or regress?)", got, tc.wantCode)
+			}
+		})
+	}
+}
+
+// TestUiExamplesRunOnAlap proves the ui-scoped rows run on the Alap
+// toolchain: the canonical rejection above is a boundary, not breakage.
+func TestUiExamplesRunOnAlap(t *testing.T) {
+	root, err := filepath.Abs("..")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ui := []struct {
+		file   string
+		marker string
+	}{
+		// Row 3 (M4 done): logic migrated to canonical spelling; UI DSL stays.
+		{"examples/social/main.nil", "=== Alap Social Feed ==="},
+	}
+
+	for _, tc := range ui {
+		t.Run(tc.file, func(t *testing.T) {
+			src, err := os.ReadFile(filepath.Join(root, tc.file))
+			if err != nil {
+				t.Fatal(err)
+			}
+			out := compile(t, string(src))
+			if !strings.Contains(out, tc.marker) {
+				t.Fatalf("alap run output missing %q, got:\n%s", tc.marker, out)
 			}
 		})
 	}
