@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <i>Status: early-alpha prototype · Go 1.25+ · MIT (see <code>LICENSE</code>)</i>
+  <i>Status: early-alpha prototype · Go 1.25+ · AGPL-3.0 (see <code>LICENSE</code>)</i>
 </p>
 
 ---
@@ -244,4 +244,4 @@ plan live in [`RELATIONSHIP.md`](./RELATIONSHIP.md).
 
 ## License
 
-MIT License © 2026 Joy Sarkar / Onuron Project. See [`LICENSE`](./LICENSE).
+AGPL-3.0 © 2026 Joy Sarkar / Onuron Project. See [`LICENSE`](./LICENSE).

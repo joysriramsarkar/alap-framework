@@ -5,7 +5,7 @@
  * All Alap plugin calls cross this boundary.
  *
  * Copyright (c) 2026 Joy Sarkar / Onuron Project
- * License: MIT
+ * License: AGPL-3.0 (see LICENSE)
  */
 #pragma once
 #include <stdint.h>
