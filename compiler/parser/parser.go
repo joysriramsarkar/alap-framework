@@ -298,6 +298,11 @@ func (p *Parser) parseFunctionDecl(decs []*ast.Decorator) *ast.FunctionDecl {
 	if p.check(lexer.TOKEN_COLON) {
 		p.advance()
 		ret = p.parseTypeAnnotation()
+	} else if p.check(lexer.TOKEN_FAT_ARROW) {
+		// Canonical `->` return annotation (nilLang M4 convergence);
+		// the `:` form above keeps working.
+		p.advance()
+		ret = p.parseTypeAnnotation()
 	}
 	body := p.parseBlock()
 	return &ast.FunctionDecl{
@@ -528,6 +533,11 @@ func (p *Parser) parseClassMember() ast.ClassMember {
 		params := p.parseParamList()
 		var ret *ast.TypeAnnotation
 		if p.check(lexer.TOKEN_COLON) {
+			p.advance()
+			ret = p.parseTypeAnnotation()
+		} else if p.check(lexer.TOKEN_FAT_ARROW) {
+			// Canonical `->` return annotation (nilLang M4 convergence);
+			// the `:` form above keeps working.
 			p.advance()
 			ret = p.parseTypeAnnotation()
 		}

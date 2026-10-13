@@ -31,8 +31,8 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 		wantOK   bool
 		wantCode string // first diagnostic code when wantOK is false
 	}{
-		// TODO(M4): `function` keyword — canonical spelling is `fn`.
-		{"examples/hello/main.nil", false, "E0004"},
+		// Row 1 (M4 done): canonical `fn` + `->` — migrates cleanly.
+		{"examples/hello/main.nil", true, ""},
 		// TODO(M4): same `function` spelling.
 		{"examples/calculator/main.nil", false, "E0004"},
 		// TODO(M4): same `function` spelling.

@@ -31,4 +31,5 @@
 
 ## এই সেশনে
 - [x] 13 Oct: `go test ./...` সবুজ (Phase 0)।
-- [x] 13 Oct: M4 start — nilLang module dependency (`require` + sibling `replace`, stdlib-only import closure তাই go.sum খালি) + canonical migration inventory (`tests/migration_inventory_test.go`: 8 example file, সবাই canonical reject — প্রথম divergence code সহ পিন; row flip = convergence)।
+- [x] 13 Oct: M4 start — dependency + inventory (commit `6aa0dc5`)।
+- [x] 13 Oct: M4 row 1 (hello) — alap parser-এ `fn` + `->` (backward compat), hello migrate, দুই toolchain সবুজ, inventory flip — নিচে।

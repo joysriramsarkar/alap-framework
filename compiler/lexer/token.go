@@ -142,7 +142,10 @@ const (
 
 // keywords maps NilLang reserved words to their token types.
 var keywords = map[string]TokenType{
+	// `fn` is the canonical spelling (nilLang); `function` stays valid so
+	// existing Alap sources keep compiling. See M4 convergence (RELATIONSHIP.md).
 	"function":   TOKEN_FUNCTION,
+	"fn":         TOKEN_FUNCTION,
 	"return":     TOKEN_RETURN,
 	"let":        TOKEN_LET,
 	"const":      TOKEN_CONST,

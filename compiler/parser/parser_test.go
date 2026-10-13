@@ -26,6 +26,22 @@ print(total)
 	}
 }
 
+// TestParseCanonicalFnSpelling pins M4 convergence: the canonical `fn`
+// keyword and `->` return annotation parse to the same AST as `function`/`:`.
+func TestParseCanonicalFnSpelling(t *testing.T) {
+	src := `
+fn add(a: i32, b: i32) -> i32 {
+    return a + b
+}
+let total: i32 = add(2, 3)
+print(total)
+`
+	p := parseSource(src)
+	if errs := p.Errors(); len(errs) > 0 {
+		t.Fatalf("expected no parse errors for canonical fn spelling, got %v", errs)
+	}
+}
+
 func TestParseReportsUnexpectedToken(t *testing.T) {
 	if errs := parseSource("}").Errors(); len(errs) == 0 {
 		t.Fatalf("expected a parse error for a stray closing brace")
