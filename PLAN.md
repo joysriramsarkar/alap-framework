@@ -34,3 +34,4 @@
 - [x] 13 Oct: M4 start — dependency + inventory (commit `6aa0dc5`)।
 - [x] 13 Oct: M4 row 1 (hello) — `fn` + `->` (commit `c4a8411`)।
 - [x] 13 Oct: M4 row 2 (calculator/counter/todo) — নিচে।
+- [x] 13 Oct: M4 row 3 (social, ui-scoped) — logic canonical spelling, UI DSL stays; inventory core/ui + alap-run proof (commit `05b9238`)।
