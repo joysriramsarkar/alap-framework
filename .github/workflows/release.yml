@@ -57,9 +57,9 @@ jobs:
             EXT=".exe"
           fi
 
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nil${EXT}" ./cmd/nil
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nilc${EXT}" ./cmd/nilc
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nills${EXT}" ./cmd/nills
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alap${EXT}" ./cmd/nil
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alapc${EXT}" ./cmd/nilc
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alap-lsp${EXT}" ./cmd/nills
 
           cp README.md "dist/${PKG_NAME}/"
           

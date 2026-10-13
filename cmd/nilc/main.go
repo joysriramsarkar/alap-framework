@@ -1,9 +1,9 @@
-// nilc — NilLang Compiler CLI
+// alapc — NilLang Compiler CLI
 // Usage:
-//   nilc -in program.nil -out program.nabc   # compile to bytecode
-//   nilc -run program.nil                     # compile & run immediately
-//   nilc -check program.nil                   # type-check only
-//   nilc -dump program.nil                    # print AST + disassembly
+//   alapc -in program.nil -out program.nabc   # compile to bytecode
+//   alapc -run program.nil                     # compile & run immediately
+//   alapc -check program.nil                   # type-check only
+//   alapc -dump program.nil                    # print AST + disassembly
 package main
 
 import (
@@ -30,25 +30,25 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, `nilc — NilLang Compiler (Alap Framework)
+		fmt.Fprintf(os.Stderr, `alapc — NilLang Compiler (Alap Framework)
 
 Usage:
-  nilc -in <file.nil> [options]
+  alapc -in <file.nil> [options]
 
 Options:
 `)
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, `
 Examples:
-  nilc -in hello.nil -run
-  nilc -in hello.nil -out hello.nabc
-  nilc -in hello.nil -check
-  nilc -in hello.nil -dump
+  alapc -in hello.nil -run
+  alapc -in hello.nil -out hello.nabc
+  alapc -in hello.nil -check
+  alapc -in hello.nil -dump
 `)
 	}
 	flag.Parse()
 
-	// Allow positional: nilc program.nil
+	// Allow positional: alapc program.nil
 	if *inFile == "" && flag.NArg() > 0 {
 		*inFile = flag.Arg(0)
 		if *outFile == "" && flag.NArg() > 1 {
@@ -57,14 +57,14 @@ Examples:
 	}
 
 	if *inFile == "" {
-		fmt.Fprintln(os.Stderr, "nilc: no input file specified (-in or positional)")
+		fmt.Fprintln(os.Stderr, "alapc: no input file specified (-in or positional)")
 		flag.Usage()
 		os.Exit(1)
 	}
 
 	src, err := os.ReadFile(*inFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nilc: cannot read %q: %v\n", *inFile, err)
+		fmt.Fprintf(os.Stderr, "alapc: cannot read %q: %v\n", *inFile, err)
 		os.Exit(1)
 	}
 
@@ -88,7 +88,7 @@ Examples:
 	if *runFlag || *outFile == "" {
 		runner := vm.New(result)
 		if err := runner.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "nilc: runtime error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "alapc: runtime error: %v\n", err)
 			os.Exit(1)
 		}
 		return
@@ -101,7 +101,7 @@ Examples:
 	}
 	bytes := codegen.Serialize(result)
 	if err := os.WriteFile(out, bytes, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "nilc: cannot write %q: %v\n", out, err)
+		fmt.Fprintf(os.Stderr, "alapc: cannot write %q: %v\n", out, err)
 		os.Exit(1)
 	}
 	fmt.Printf("✓ compiled %s → %s (%d bytes)\n", *inFile, out, len(bytes))

@@ -15,7 +15,7 @@ CI (`.github/workflows/ci.yml`) runs, on Linux/macOS/Windows:
 1. `go mod verify`
 2. `go vet ./...`
 3. `go test -v ./...`
-4. a build of `bin/nil`, `bin/nilc`, `bin/nills`
+4. a build of `bin/alap`, `bin/alapc`, `bin/alap-lsp`
 
 `go vet` is a required gate: a new warning fails CI.
 

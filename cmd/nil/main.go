@@ -1,12 +1,12 @@
-// nil — Alap project management CLI
+// alap — Alap project management CLI
 // Usage:
-//   nil init <name>            create a new NilLang project
-//   nil run [file]             compile and run
-//   nil build <platform>       build for platform: onuron|android|ios|linux
-//   nil check                  type-check all .nil files
-//   nil fmt                    format all .nil files
-//   nil test                   run tests
-//   nil clean                  clean build artifacts
+//   alap init <name>            create a new Alap project
+//   alap run [file]             compile and run
+//   alap build <platform>       build for platform: onuron|android|ios|linux
+//   alap check                  type-check all .nil files
+//   alap fmt                    format all .nil files
+//   alap test                   run tests
+//   alap clean                  clean build artifacts
 package main
 
 import (
@@ -183,25 +183,25 @@ An Alap Framework application written in NilLang.
 
 ` + "```bash" + `
 # Run the application
-nil run
+alap run
 
-# Build for NilOS
-nil build onuron
+# Build for Onuron
+alap build onuron
 
 # Build for Android
-nil build android
+alap build android
 
 # Build for iOS
-nil build ios
+alap build ios
 
 # Build for Linux
-nil build linux
+alap build linux
 
 # Type-check
-nil check
+alap check
 
 # Run tests
-nil test
+alap test
 ` + "```" + `
 
 ## Project Structure
@@ -282,12 +282,12 @@ func main() {
 	case "lsp":
 		server := lsp.NewServer(os.Stdin, os.Stdout)
 		if err := server.Serve(); err != nil {
-			fmt.Fprintf(os.Stderr, "nil lsp: error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "alap lsp: error: %v\n", err)
 		}
 	case "pm":
 		pm := manager.New(".")
 		if err := pm.Install(); err != nil {
-			fmt.Printf("nil pm: error: %v\n", err)
+			fmt.Printf("alap pm: error: %v\n", err)
 		} else {
 			fmt.Println("✓ Dependencies resolved and locked in alap.lock")
 		}
@@ -305,53 +305,53 @@ func main() {
 		cmdFmt()
 	case "add":
 		if len(args) == 0 {
-			fmt.Println("Usage: nil add <package-name>")
+			fmt.Println("Usage: alap add <package-name>")
 			return
 		}
 		cmdAdd(args[0])
 	case "clean":
 		cmdClean()
 	case "version":
-		fmt.Printf("nil (Alap Framework) v%s\n", version)
+		fmt.Printf("alap (Alap Framework) v%s\n", version)
 	case "help", "-h", "--help":
 		printHelp()
 	default:
-		fmt.Fprintf(os.Stderr, "nil: unknown command %q\n", cmd)
+		fmt.Fprintf(os.Stderr, "alap: unknown command %q\n", cmd)
 		printHelp()
 		os.Exit(1)
 	}
 }
 
 func printHelp() {
-	fmt.Printf(`nil — Alap Framework Project Tool v%s
+	fmt.Printf(`alap — Alap Framework Project Tool v%s
 
 Commands:
-  nil init <name>         Create a new Alap project
-  nil run [file]          Compile and run (default: src/main.nil)
-  nil repl                Start interactive NilLang REPL
-  nil lsp                 Start Language Server Protocol daemon
-  nil pm [install]        Resolve and lock package dependencies
-  nil build <platform>    Build for platform:
+  alap init <name>         Create a new Alap project
+  alap run [file]          Compile and run (default: src/main.nil)
+  alap repl                Start interactive NilLang REPL
+  alap lsp                 Start Language Server Protocol daemon
+  alap pm [install]        Resolve and lock package dependencies
+  alap build <platform>    Build for platform:
                             onuron  → Onuron native app (.nilax / .nabc)
                             android → Android APK / JNI scaffold
                             ios     → iOS app / Metal scaffold
                             linux   → Linux desktop bundle / Flatpak
-  nil check               Type-check all .nil source files
-  nil test                Run test files (*_test.nil)
-  nil fmt                 Format all .nil files
-  nil add <package>       Add package dependency to alap.yaml
-  nil clean               Remove build artifacts
-  nil version             Print version
+  alap check               Type-check all .nil source files
+  alap test                Run test files (*_test.nil)
+  alap fmt                 Format all .nil files
+  alap add <package>       Add package dependency to alap.yaml
+  alap clean               Remove build artifacts
+  alap version             Print version
 
 Examples:
-  nil init my-app
-  nil run
-  nil repl
-  nil build onuron
-  nil build android
-  nil build linux
-  nil pm install
-  nil fmt
+  alap init my-app
+  alap run
+  alap repl
+  alap build onuron
+  alap build android
+  alap build linux
+  alap pm install
+  alap fmt
 `, version)
 }
 
@@ -371,7 +371,7 @@ func cmdInit(name string) {
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "nil init: %v\n", err)
+			fmt.Fprintf(os.Stderr, "alap init: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -387,19 +387,19 @@ func cmdInit(name string) {
 	for path, tmplStr := range files {
 		f, err := os.Create(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "nil init: %v\n", err)
+			fmt.Fprintf(os.Stderr, "alap init: %v\n", err)
 			os.Exit(1)
 		}
 		tmpl := template.Must(template.New("f").Parse(tmplStr))
 		if err := tmpl.Execute(f, data); err != nil {
-			fmt.Fprintf(os.Stderr, "nil init: template error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "alap init: template error: %v\n", err)
 		}
 		f.Close()
 	}
 
 	fmt.Printf("✓ Created Alap project: %s\n\n", name)
 	fmt.Printf("  cd %s\n", name)
-	fmt.Printf("  nil run\n\n")
+	fmt.Printf("  alap run\n\n")
 	fmt.Println("Happy coding with NilLang! 🚀")
 }
 
@@ -483,13 +483,13 @@ func cmdRun(file string) {
 	}
 	mod, err := compileFile(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nil run: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap run: %v\n", err)
 		os.Exit(1)
 	}
 
 	runner := vm.New(mod)
 	if err := runner.Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "nil run: runtime error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap run: runtime error: %v\n", err)
 		os.Exit(1)
 	}
 	if tree := runner.GetUITree(); tree != nil && tree.Root != nil {
@@ -502,7 +502,7 @@ func cmdRun(file string) {
 }
 
 func cmdBuild(platform string) {
-	fmt.Printf("nil: building for %s...\n", platform)
+	fmt.Printf("alap: building for %s...\n", platform)
 	switch platform {
 	case "onuron", "nilos":
 		buildOnuron()
@@ -513,7 +513,7 @@ func cmdBuild(platform string) {
 	case "linux":
 		buildLinux()
 	default:
-		fmt.Fprintf(os.Stderr, "nil build: unknown platform %q (use: onuron|android|ios|linux)\n", platform)
+		fmt.Fprintf(os.Stderr, "alap build: unknown platform %q (use: onuron|android|ios|linux)\n", platform)
 		os.Exit(1)
 	}
 }
@@ -522,7 +522,7 @@ func buildOnuron() {
 	info := getProjectInfo()
 	bytecode, err := buildEntryBytecode(info)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nil build onuron: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build onuron: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -531,7 +531,7 @@ func buildOnuron() {
 	adapter.Version = info.Version
 	outDir := filepath.Join("build")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
-		fmt.Fprintf(os.Stderr, "nil build onuron: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build onuron: error: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Printf("✓ Built for Onuron native app (.nilax) → build/onuron/\n")
@@ -543,7 +543,7 @@ func buildAndroid() {
 	info := getProjectInfo()
 	bytecode, err := buildEntryBytecode(info)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nil build android: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build android: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -551,7 +551,7 @@ func buildAndroid() {
 	adapter.AppName = info.Name
 	outDir := filepath.Join("build", "android")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
-		fmt.Fprintf(os.Stderr, "nil build android: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build android: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -565,7 +565,7 @@ func buildIOS() {
 	info := getProjectInfo()
 	bytecode, err := buildEntryBytecode(info)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nil build ios: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build ios: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -573,7 +573,7 @@ func buildIOS() {
 	adapter.AppName = info.Name
 	outDir := filepath.Join("build", "ios")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
-		fmt.Fprintf(os.Stderr, "nil build ios: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build ios: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -586,7 +586,7 @@ func buildLinux() {
 	info := getProjectInfo()
 	bytecode, err := buildEntryBytecode(info)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "nil build linux: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build linux: error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -595,7 +595,7 @@ func buildLinux() {
 	adapter.AppID = "org.alap." + strings.ToLower(strings.ReplaceAll(info.Name, " ", "_"))
 	outDir := filepath.Join("build")
 	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
-		fmt.Fprintf(os.Stderr, "nil build linux: error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "alap build linux: error: %v\n", err)
 		os.Exit(1)
 	}
 	fmt.Printf("✓ Built for Linux desktop → build/linux/\n")
@@ -660,11 +660,11 @@ func cmdTest() {
 	}
 
 	if len(testFiles) == 0 {
-		fmt.Println("nil test: no test files (*_test.nil) found in tests/")
+		fmt.Println("alap test: no test files (*_test.nil) found in tests/")
 		return
 	}
 
-	fmt.Printf("nil test: running %d test files...\n\n", len(testFiles))
+	fmt.Printf("alap test: running %d test files...\n\n", len(testFiles))
 	passed := 0
 	failed := 0
 
@@ -699,7 +699,7 @@ func cmdTest() {
 func cmdFmt() {
 	nils := findNilFiles(".")
 	if len(nils) == 0 {
-		fmt.Println("nil fmt: no .nil files found")
+		fmt.Println("alap fmt: no .nil files found")
 		return
 	}
 	formattedCount := 0
@@ -726,13 +726,13 @@ func cmdAdd(pkg string) {
 		if _, err2 := os.Stat("nilx.yaml"); err2 == nil {
 			manifestPath = "nilx.yaml"
 		} else {
-			fmt.Printf("nil add: no alap.yaml found in current directory\n")
+			fmt.Printf("alap add: no alap.yaml found in current directory\n")
 			return
 		}
 	}
 	content, err := os.ReadFile(manifestPath)
 	if err != nil {
-		fmt.Printf("nil add: cannot read %s: %v\n", manifestPath, err)
+		fmt.Printf("alap add: cannot read %s: %v\n", manifestPath, err)
 		return
 	}
 	lines := strings.Split(string(content), "\n")

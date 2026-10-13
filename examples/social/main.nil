@@ -1,6 +1,6 @@
 // social.nil — NilLang Social Feed Application
 // Demonstrates: Declarative UI, Component hierarchy, State, Structs, Arrays, Stdlib (crypto/time)
-// Run: nil run examples/social/main.nil
+// Run: alap run examples/social/main.nil
 
 struct Post {
     id: string

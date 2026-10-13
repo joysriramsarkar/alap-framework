@@ -6,6 +6,9 @@ Version 0.1 Architecture Specification • 1 September 2026
 
 Target: Onuron, Android, iOS, Linux • Primary language: NilLang
 
+> **Naming note (13 Oct 2026):** the Alap CLI binaries are now `alap`/`alapc`/`alap-lsp`
+> (`nil` belongs to the canonical NilLang toolchain). Examples below read `alap …`.
+
 
 Executive note / নির্বাহী নোট
 
@@ -563,9 +566,9 @@ English
 
 Linux targets Wayland first, X11 for compatibility, and a headless backend for CI. Window integration, clipboard, file pickers, notifications, and desktop portal integration live in the Linux adapter.
 
-nil run --target linux
-nil build linux --arch x86_64
-nil build linux --arch arm64
+alap run --target linux
+alap build linux --arch x86_64
+alap build linux --arch arm64
 
 
 
@@ -664,12 +667,12 @@ English
 The developer experience centers on one `nil` command. It handles project creation, dependency resolution, checking, testing, building, running, packaging, installation, and environment diagnostics.
 
 nil create notes
-nil check
-nil test
-nil run --target linux
-nil run --target onuron
-nil build android
-nil build ios
+alap check
+alap test
+alap run --target linux
+alap run --target onuron
+alap build android
+alap build ios
 nil package
 nil install app.nilax
 nil devices
