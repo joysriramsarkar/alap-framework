@@ -2,23 +2,23 @@
 // Reference Implementation for Onuron Ecosystem:
 // Products Catalog -> Barcode/SKU Search -> Cart -> Discount/Tax -> Checkout -> Stock Deduction -> SQLite -> Reopen Verify
 
-function json_obj(k1: string, v1: string, k2: string, v2: string): string {
+fn json_obj(k1: string, v1: string, k2: string, v2: string) -> string {
     return "{\"" + k1 + "\":\"" + v1 + "\",\"" + k2 + "\":\"" + v2 + "\"}"
 }
 
-function json_product(id: string, sku: string, barcode: string, name: string, price: string, stock: string): string {
+fn json_product(id: string, sku: string, barcode: string, name: string, price: string, stock: string) -> string {
     return "{\"id\":" + id + ",\"sku\":\"" + sku + "\",\"barcode\":\"" + barcode + "\",\"name\":\"" + name + "\",\"price\":" + price + ",\"stock\":" + stock + "}"
 }
 
-function json_cart_item(id: string, prodId: string, name: string, qty: string, price: string, total: string): string {
+fn json_cart_item(id: string, prodId: string, name: string, qty: string, price: string, total: string) -> string {
     return "{\"id\":" + id + ",\"prodId\":" + prodId + ",\"name\":\"" + name + "\",\"qty\":" + qty + ",\"price\":" + price + ",\"total\":" + total + "}"
 }
 
-function json_transaction(id: string, invoice: string, items: string, subtotal: string, discount: string, tax: string, total: string, payment: string): string {
+fn json_transaction(id: string, invoice: string, items: string, subtotal: string, discount: string, tax: string, total: string, payment: string) -> string {
     return "{\"id\":" + id + ",\"invoice\":\"" + invoice + "\",\"items\":" + items + ",\"subtotal\":" + subtotal + ",\"discount\":" + discount + ",\"tax\":" + tax + ",\"total\":" + total + ",\"payment\":\"" + payment + "\"}"
 }
 
-function main(): void {
+fn main() -> Void {
     print("==================================================")
     print("  🏪 ONURON FRESH MARKET — MINI POS (ALAP REFERENCE)")
     print("==================================================")
@@ -36,7 +36,7 @@ function main(): void {
     print("")
 
     // 2. Seed Catalog (Idempotent: seed only if empty)
-    let initialCount: i32 = db_count(db, "products", "{}")
+    let initialCount: Int = db_count(db, "products", "{}")
     if initialCount == 0 {
         print("[Catalog] Initializing product catalog...")
         db_insert(db, "products", json_product("1", "SKU-APL-01", "8901001", "Apple (Fuji)", "150", "100"))
@@ -49,7 +49,7 @@ function main(): void {
         print("[Catalog] Catalog already seeded with " + initialCount.toString() + " items.")
     }
 
-    let catalogCount: i32 = db_count(db, "products", "{}")
+    let catalogCount: Int = db_count(db, "products", "{}")
     print("[Catalog] Total active inventory items: " + catalogCount.toString())
     print("")
 
@@ -79,25 +79,25 @@ function main(): void {
     db_insert(db, "cart", json_cart_item("3", "3", "Fresh Milk (1L)", "1", "65", "65"))
     print("Scan + Add: 1x Fresh Milk (1L) @ 65 = 65")
 
-    let cartLines: i32 = db_count(db, "cart", "{}")
+    let cartLines: Int = db_count(db, "cart", "{}")
     print("Active cart lines: " + cartLines.toString())
     print("")
 
     // 5. Pricing, Promotional Discount, and Sales Tax
     print("--- [3] Price Calculation, Discount & Tax ---")
-    let line1: i32 = 450
-    let line2: i32 = 90
-    let line3: i32 = 65
-    let subtotal: i32 = line1 + line2 + line3 // 605
-    let totalItemsSold: i32 = 3 + 2 + 1       // 6
+    let line1: Int = 450
+    let line2: Int = 90
+    let line3: Int = 65
+    let subtotal: Int = line1 + line2 + line3 // 605
+    let totalItemsSold: Int = 3 + 2 + 1       // 6
 
     // 5% promotional discount
-    let discount: i32 = 30
-    let discountedSubtotal: i32 = subtotal - discount // 575
+    let discount: Int = 30
+    let discountedSubtotal: Int = subtotal - discount // 575
 
     // 5% Retail Tax / VAT
-    let tax: i32 = 28
-    let finalTotal: i32 = discountedSubtotal + tax // 603
+    let tax: Int = 28
+    let finalTotal: Int = discountedSubtotal + tax // 603
 
     print("Gross Subtotal:     $" + subtotal.toString())
     print("Discount (Promo):  -$" + discount.toString())
@@ -114,7 +114,7 @@ function main(): void {
     print("[Stock] Deducted: Apple (100 -> 97), Bread (50 -> 48), Milk (80 -> 79)")
 
     // Record completed transaction
-    let txnId: i32 = 1001
+    let txnId: Int = 1001
     let invoiceNo: string = "INV-20261004-001"
     db_insert(db, "transactions", json_transaction(txnId.toString(), invoiceNo, totalItemsSold.toString(), subtotal.toString(), discount.toString(), tax.toString(), finalTotal.toString(), "CASH"))
     print("[Transaction] Recorded " + invoiceNo + " in database.")
@@ -157,8 +157,8 @@ function main(): void {
     let db2: string = db_open(dbPath)
     print("[DB] Session 2 opened fresh connection to " + dbPath)
 
-    let persistedTxns: i32 = db_count(db2, "transactions", "{}")
-    let persistedCart: i32 = db_count(db2, "cart", "{}")
+    let persistedTxns: Int = db_count(db2, "transactions", "{}")
+    let persistedCart: Int = db_count(db2, "cart", "{}")
     let updatedApple: string = db_get(db2, "products", "{\"id\":1}")
 
     print("[DB Verify] Transactions logged: " + persistedTxns.toString() + " (expected: 1)")

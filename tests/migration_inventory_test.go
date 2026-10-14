@@ -15,6 +15,10 @@ package tests
 //     views), which RELATIONSHIP.md keeps as alap's preserved value. These
 //     rows pin the canonical *rejection* at the UI boundary and, via
 //     TestUiExamplesRunOnAlap below, prove the Alap toolchain runs them.
+//   - "stdlib": canonical language surface, but calling host builtins the
+//     canonical stdlib does not have yet (P2 stdlib parity). Rows pin the
+//     first unknown builtin; the Alap side is covered by the example's own
+//     test suite (no extra runner — these suites own their fixtures).
 //
 // The table is exhaustive: adding an example without a row fails the count
 // check below.
@@ -52,12 +56,15 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 		// Row 3 (M4 done): logic migrated (`fn`/`->`/`Int`/`Void`/`Array`/commas/named
 		// literals); `component`/`build()` UI DSL stays Alap by design.
 		{"examples/social/main.nil", "ui", false, "E0004", "=== Alap Social Feed ==="},
-		// TODO(M4): web-app surface is outside the canonical grammar.
-		{"examples/web-app/main.nil", "core", false, "E0001", ""},
-		// TODO(M4): same `function` spelling (reference POS app).
-		{"examples/pos/src/main.nil", "core", false, "E0004", ""},
-		// TODO(M4): ArkUI `@Component`/`build()` vs canonical keywords.
-		{"examples/pos/src/pos_app.nil", "core", false, "E0001", ""},
+		// Row 3 (M4 done): `fn` migrated; `import`-from-`alap/web` + `@Component` +
+		// `build()` UI surface stays Alap by design.
+		{"examples/web-app/main.nil", "ui", false, "E0001", "Alap Web Client App Booted"},
+		// Row 4 (M4 done): fully core-spelled; blocked on `db_*` host builtins
+		// (P2 stdlib parity). Alap side covered by examples/pos (11 tests).
+		{"examples/pos/src/main.nil", "stdlib", false, "E0102", ""},
+		// Row 4 (M4 done): ArkUI declarative UI — Alap by design; parsed and
+		// compiled by examples/pos, canonical rejects the component surface.
+		{"examples/pos/src/pos_app.nil", "ui", false, "E0001", ""},
 	}
 
 	const wantFiles = 8
@@ -82,8 +89,8 @@ func TestCanonicalMigrationInventory(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.file, func(t *testing.T) {
-			if tc.scope != "core" && tc.scope != "ui" {
-				t.Fatalf("row %q has scope %q, want core or ui", tc.file, tc.scope)
+			if tc.scope != "core" && tc.scope != "ui" && tc.scope != "stdlib" {
+				t.Fatalf("row %q has scope %q, want core, ui or stdlib", tc.file, tc.scope)
 			}
 			src, err := os.ReadFile(filepath.Join(root, tc.file))
 			if err != nil {
@@ -126,6 +133,12 @@ func TestUiExamplesRunOnAlap(t *testing.T) {
 	}{
 		// Row 3 (M4 done): logic migrated to canonical spelling; UI DSL stays.
 		{"examples/social/main.nil", "=== Alap Social Feed ==="},
+		// Row 4 (M4 done): `fn` migrated; web UI surface stays.
+		{"examples/web-app/main.nil", "Alap Web Client App Booted"},
+		// Row 4 (M4 done): declarative UI with no entry point — compiling
+		// clean (parse+codegen+run without error) is the proof; behavior is
+		// covered by examples/pos.
+		{"examples/pos/src/pos_app.nil", ""},
 	}
 
 	for _, tc := range ui {
@@ -135,7 +148,7 @@ func TestUiExamplesRunOnAlap(t *testing.T) {
 				t.Fatal(err)
 			}
 			out := compile(t, string(src))
-			if !strings.Contains(out, tc.marker) {
+			if tc.marker != "" && !strings.Contains(out, tc.marker) {
 				t.Fatalf("alap run output missing %q, got:\n%s", tc.marker, out)
 			}
 		})
