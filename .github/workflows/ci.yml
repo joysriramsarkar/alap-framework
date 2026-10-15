@@ -22,7 +22,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.x'
+          go-version: '1.25.0'
           cache: true
 
       - name: Verify module dependencies
@@ -38,16 +38,16 @@ jobs:
         run: |
           mkdir -p bin
           go build -v -o bin/alap ./cmd/nil
-          go build -v -o bin/alapc ./cmd/alapc
-          go build -v -o bin/alap-lsp ./cmd/alap-lsp
+          go build -v -o bin/alapc ./cmd/nilc
+          go build -v -o bin/alap-lsp ./cmd/nills
         if: runner.os != 'windows'
 
       - name: Build binaries (Windows)
         run: |
           if (!(Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" }
           go build -v -o bin/alap.exe ./cmd/nil
-          go build -v -o bin/alapc.exe ./cmd/alapc
-          go build -v -o bin/alap-lsp.exe ./cmd/alap-lsp
+          go build -v -o bin/alapc.exe ./cmd/nilc
+          go build -v -o bin/alap-lsp.exe ./cmd/nills
         if: runner.os == 'windows'
 
       - name: Verify CLI tools & project checks (Unix)
