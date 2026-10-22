@@ -15,9 +15,16 @@ type Kind int
 const (
 	KindVoid Kind = iota
 	KindBool
-	KindI8; KindI16; KindI32; KindI64
-	KindU8; KindU16; KindU32; KindU64
-	KindF32; KindF64
+	KindI8
+	KindI16
+	KindI32
+	KindI64
+	KindU8
+	KindU16
+	KindU32
+	KindU64
+	KindF32
+	KindF64
 	KindBigInt
 	KindChar
 	KindString
@@ -47,9 +54,9 @@ const (
 type Type struct {
 	Kind       Kind
 	Name       string
-	Elem       *Type   // array element / channel payload / future result
-	KeyType    *Type   // map key
-	ValueType  *Type   // map value
+	Elem       *Type // array element / channel payload / future result
+	KeyType    *Type // map key
+	ValueType  *Type // map value
 	Fields     map[string]*Type
 	Methods    map[string]*FuncType
 	TypeParams []*Type
@@ -61,9 +68,9 @@ type Type struct {
 }
 
 type FuncType struct {
-	Params  []*Type
-	Return  *Type
-	Async   bool
+	Params []*Type
+	Return *Type
+	Async  bool
 }
 
 // Builtin types (singletons)

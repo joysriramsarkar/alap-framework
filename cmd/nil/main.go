@@ -1,12 +1,13 @@
 // alap — Alap project management CLI
 // Usage:
-//   alap init <name>            create a new Alap project
-//   alap run [file]             compile and run
-//   alap build <platform>       build for platform: onuron|android|ios|linux
-//   alap check                  type-check all .nil files
-//   alap fmt                    format all .nil files
-//   alap test                   run tests
-//   alap clean                  clean build artifacts
+//
+//	alap init <name>            create a new Alap project
+//	alap run [file]             compile and run
+//	alap build <platform>       build for platform: onuron|android|ios|linux
+//	alap check                  type-check all .nil files
+//	alap fmt                    format all .nil files
+//	alap test                   run tests
+//	alap clean                  clean build artifacts
 package main
 
 import (
@@ -378,11 +379,11 @@ func cmdInit(name string) {
 
 	data := templateData{Name: name}
 	files := map[string]string{
-		filepath.Join(name, "alap.yaml"):               alapYaml,
-		filepath.Join(name, "src", "main.nil"):          mainNil,
-		filepath.Join(name, "src", "App.nil"):           appNil,
-		filepath.Join(name, "tests", "main_test.nil"):   testNil,
-		filepath.Join(name, "README.md"):                readme,
+		filepath.Join(name, "alap.yaml"):              alapYaml,
+		filepath.Join(name, "src", "main.nil"):        mainNil,
+		filepath.Join(name, "src", "App.nil"):         appNil,
+		filepath.Join(name, "tests", "main_test.nil"): testNil,
+		filepath.Join(name, "README.md"):              readme,
 	}
 	for path, tmplStr := range files {
 		f, err := os.Create(path)

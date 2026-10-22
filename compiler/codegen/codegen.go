@@ -35,8 +35,8 @@ const (
 	OP_LOAD_NULL
 	OP_LOAD_TRUE
 	OP_LOAD_FALSE
-	OP_LOAD_INT    // inline int32
-	OP_LOAD_FLOAT  // inline float64
+	OP_LOAD_INT   // inline int32
+	OP_LOAD_FLOAT // inline float64
 
 	// Arithmetic
 	OP_ADD
@@ -75,8 +75,8 @@ const (
 	OP_RETURN_VOID
 
 	// Objects / arrays / maps
-	OP_NEW_OBJECT  // field count in operand
-	OP_NEW_ARRAY   // element count
+	OP_NEW_OBJECT // field count in operand
+	OP_NEW_ARRAY  // element count
 	OP_NEW_MAP
 	OP_NEW_CLASS
 
@@ -117,7 +117,7 @@ var opcodeNames = map[Opcode]string{
 	OP_NOT: "NOT", OP_AND: "AND", OP_OR: "OR",
 	OP_EQ: "EQ", OP_NEQ: "NEQ", OP_LT: "LT", OP_GT: "GT", OP_LTE: "LTE", OP_GTE: "GTE",
 	OP_STR_CONCAT: "STR_CONCAT",
-	OP_JUMP: "JUMP", OP_JUMP_IF_FALSE: "JUMP_IF_FALSE", OP_JUMP_IF_TRUE: "JUMP_IF_TRUE",
+	OP_JUMP:       "JUMP", OP_JUMP_IF_FALSE: "JUMP_IF_FALSE", OP_JUMP_IF_TRUE: "JUMP_IF_TRUE",
 	OP_CALL: "CALL", OP_CALL_METHOD: "CALL_METHOD", OP_RETURN: "RETURN", OP_RETURN_VOID: "RETURN_VOID",
 	OP_NEW_OBJECT: "NEW_OBJECT", OP_NEW_ARRAY: "NEW_ARRAY", OP_NEW_MAP: "NEW_MAP",
 	OP_AWAIT: "AWAIT", OP_SPAWN_TASK: "SPAWN_TASK", OP_CHAN_SEND: "CHAN_SEND", OP_CHAN_RECV: "CHAN_RECV",
@@ -158,11 +158,11 @@ const (
 )
 
 type Constant struct {
-	Kind    ConstKind
-	IntVal  int64
+	Kind     ConstKind
+	IntVal   int64
 	FloatVal float64
-	StrVal  string
-	BoolVal bool
+	StrVal   string
+	BoolVal  bool
 }
 
 func (c Constant) String() string {
@@ -213,11 +213,11 @@ type Module struct {
 // ─── Generator ────────────────────────────────────────────────────────────────
 
 type Generator struct {
-	module  *Module
-	current *Function
-	locals  map[string]int
-	errors  []string
-	loopBreaks  [][]int
+	module        *Module
+	current       *Function
+	locals        map[string]int
+	errors        []string
+	loopBreaks    [][]int
 	loopContinues [][]int
 }
 

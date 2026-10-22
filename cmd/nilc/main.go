@@ -1,9 +1,10 @@
 // alapc — NilLang Compiler CLI
 // Usage:
-//   alapc -in program.nil -out program.nabc   # compile to bytecode
-//   alapc -run program.nil                     # compile & run immediately
-//   alapc -check program.nil                   # type-check only
-//   alapc -dump program.nil                    # print AST + disassembly
+//
+//	alapc -in program.nil -out program.nabc   # compile to bytecode
+//	alapc -run program.nil                     # compile & run immediately
+//	alapc -check program.nil                   # type-check only
+//	alapc -dump program.nil                    # print AST + disassembly
 package main
 
 import (

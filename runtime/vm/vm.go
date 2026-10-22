@@ -60,8 +60,8 @@ type Closure struct {
 
 // Channel is a Go-channel-backed NilLang Channel<T>.
 type Channel struct {
-	C    chan Value
-	mu   sync.Mutex
+	C      chan Value
+	mu     sync.Mutex
 	closed bool
 }
 
@@ -84,16 +84,16 @@ var Nil = Value{Kind: ValNil}
 var True = Value{Kind: ValBool, BoolVal: true}
 var False = Value{Kind: ValBool, BoolVal: false}
 
-func IntVal(n int64) Value    { return Value{Kind: ValInt, IntVal: n} }
+func IntVal(n int64) Value     { return Value{Kind: ValInt, IntVal: n} }
 func FloatVal(f float64) Value { return Value{Kind: ValFloat, FloatVal: f} }
-func StrVal(s string) Value   { return Value{Kind: ValString, StrVal: s} }
+func StrVal(s string) Value    { return Value{Kind: ValString, StrVal: s} }
 func BoolVal(b bool) Value {
 	if b {
 		return True
 	}
 	return False
 }
-func ArrayVal(s []Value) Value { return Value{Kind: ValArray, Slice: s} }
+func ArrayVal(s []Value) Value        { return Value{Kind: ValArray, Slice: s} }
 func ObjVal(m map[string]Value) Value { return Value{Kind: ValObject, MapVal: m} }
 func FuncVal(fn *codegen.Function) Value {
 	return Value{Kind: ValFunc, FuncVal: &Closure{Fn: fn}}
@@ -253,10 +253,10 @@ func (v Value) toFloat() float64 {
 // ─── VM frame ─────────────────────────────────────────────────────────────────
 
 type Frame struct {
-	fn      *codegen.Function
-	ip      int
-	locals  []Value
-	base    int // stack base
+	fn     *codegen.Function
+	ip     int
+	locals []Value
+	base   int // stack base
 }
 
 func newFrame(fn *codegen.Function) *Frame {

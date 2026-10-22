@@ -74,7 +74,6 @@ func (m *Manager) LockfilePath() string {
 	return alapLock
 }
 
-
 // Install reads dependencies and generates/updates alap.lock (or nilx.lock).
 func (m *Manager) Install() error {
 	manifestPath := m.ManifestPath()

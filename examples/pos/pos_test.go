@@ -356,4 +356,3 @@ func TestMiniPOSOnuronLifecycleExecution(t *testing.T) {
 		t.Fatalf("RunApp failed: %v", err)
 	}
 }
-

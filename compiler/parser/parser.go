@@ -11,10 +11,10 @@ import (
 
 // Parser holds the state needed to parse a token stream.
 type Parser struct {
-	tokens  []lexer.Token
-	pos     int
-	errors  []string
-	file    string
+	tokens []lexer.Token
+	pos    int
+	errors []string
+	file   string
 }
 
 // New creates a Parser from a slice of tokens (from Lexer.Tokenize).
@@ -1233,7 +1233,7 @@ func (p *Parser) parsePostfix() ast.Expression {
 				// method call
 				args := p.parseArgList()
 				expr = &ast.CallExpr{
-					Callee: &ast.MemberExpr{Object: expr, Property: prop, Optional: optional, Pos: pos},
+					Callee:    &ast.MemberExpr{Object: expr, Property: prop, Optional: optional, Pos: pos},
 					Arguments: args, Pos: pos,
 				}
 			} else {

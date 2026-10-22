@@ -31,7 +31,7 @@ type SensorData struct {
 
 // BatteryInfo holds current battery state and charging percentage.
 type BatteryInfo struct {
-	Level      int     `json:"level"`      // 0-100%
+	Level      int     `json:"level"` // 0-100%
 	IsCharging bool    `json:"isCharging"`
 	Voltage    float64 `json:"voltage"`
 	Health     string  `json:"health"`
@@ -57,7 +57,7 @@ func NewHAL() *HAL {
 	h.sensorValues[SensorAccelerometer] = []float64{0.0, 9.81, 0.0}
 	h.sensorValues[SensorGyroscope] = []float64{0.0, 0.0, 0.0}
 	h.sensorValues[SensorAmbientLight] = []float64{350.0} // lux
-	h.sensorValues[SensorProximity] = []float64{5.0}     // cm
+	h.sensorValues[SensorProximity] = []float64{5.0}      // cm
 	h.sensorValues[SensorThermal] = []float64{38.5}       // Celsius
 
 	return h

@@ -9,9 +9,9 @@ import (
 
 // Version represents a parsed Semantic Version (Major.Minor.Patch-Pre+Build).
 type Version struct {
-	Major int
-	Minor int
-	Patch int
+	Major      int
+	Minor      int
+	Patch      int
 	Prerelease string
 }
 

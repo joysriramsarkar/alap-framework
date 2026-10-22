@@ -488,8 +488,8 @@ char*      alap_runtime_get_ui_json(NilContext ctx);
 		filepath.Join(srcMain, "AndroidManifest.xml"):   manifest,
 		filepath.Join(javaPkgDir, "AlapActivity.kt"):    activityKt,
 		filepath.Join(cppDir, "CMakeLists.txt"):         cmakeLists,
-		filepath.Join(cppDir, "alap_jni.c"):            jniC,
-		filepath.Join(cppDir, "nilabi.h"):              nilabiH,
+		filepath.Join(cppDir, "alap_jni.c"):             jniC,
+		filepath.Join(cppDir, "nilabi.h"):               nilabiH,
 		filepath.Join(valuesDir, "strings.xml"):         stringsXml,
 		filepath.Join(valuesDir, "styles.xml"):          stylesXml,
 	}
