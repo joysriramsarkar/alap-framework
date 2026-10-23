@@ -30,6 +30,7 @@ jobs:
         run: |
           mkdir -p ../nilLang
           cp -R nilLang-dep/* ../nilLang/
+          rm -rf nilLang-dep
 
       - name: Set up Go
         uses: actions/setup-go@v5

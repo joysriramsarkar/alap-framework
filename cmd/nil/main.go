@@ -773,7 +773,16 @@ func findNilFiles(dir string) []string {
 		if err != nil {
 			return nil
 		}
-		if !info.IsDir() && strings.HasSuffix(path, ".nil") {
+		if info.IsDir() {
+			if path != dir {
+				name := info.Name()
+				if strings.HasPrefix(name, ".") || name == "node_modules" || name == "vendor" || name == "build" || name == "dist" || strings.HasSuffix(name, "-dep") {
+					return filepath.SkipDir
+				}
+			}
+			return nil
+		}
+		if strings.HasSuffix(path, ".nil") {
 			files = append(files, path)
 		}
 		return nil
