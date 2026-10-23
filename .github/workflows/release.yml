@@ -36,6 +36,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout nilLang dependency
+        uses: actions/checkout@v4
+        with:
+          repository: joysriramsarkar/nilLang
+          path: nilLang-dep
+
+      - name: Setup nilLang sibling directory
+        shell: bash
+        run: |
+          mkdir -p ../nilLang
+          cp -R nilLang-dep/* ../nilLang/
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
