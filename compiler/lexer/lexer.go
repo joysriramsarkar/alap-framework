@@ -104,14 +104,16 @@ func (l *Lexer) skipWhitespaceAndComments() {
 			}
 		case r == '/' && l.peekAt(1) == '*':
 			// block comment
-			l.advance(); l.advance()
+			l.advance()
+			l.advance()
 			for {
 				if l.peek() == 0 {
 					l.errors = append(l.errors, fmt.Sprintf("%s:%d:%d: unterminated block comment", l.filename, l.line, l.col))
 					return
 				}
 				if l.peek() == '*' && l.peekAt(1) == '/' {
-					l.advance(); l.advance()
+					l.advance()
+					l.advance()
 					break
 				}
 				l.advance()

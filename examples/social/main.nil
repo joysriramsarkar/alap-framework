@@ -1,15 +1,15 @@
 // social.nil — NilLang Social Feed Application
 // Demonstrates: Declarative UI, Component hierarchy, State, Structs, Arrays, Stdlib (crypto/time)
-// Run: nil run examples/social/main.nil
+// Run: alap run examples/social/main.nil
 
 struct Post {
-    id: string
-    author: string
-    avatar: string
-    content: string
-    timestamp: string
-    likes: i32
-    comments: string[]
+    id: string,
+    author: string,
+    avatar: string,
+    content: string,
+    timestamp: string,
+    likes: Int,
+    comments: Array<string>,
 }
 
 component Header {
@@ -119,10 +119,10 @@ component App {
     }
 }
 
-function createPost(author: string, content: string): Post {
+fn createPost(author: string, content: string) -> Post {
     let postID: string = crypto_uuid()
-    let now: i32 = time_now()
-    return {
+    let now: Int = time_now()
+    return Post {
         id: postID,
         author: author,
         avatar: "👤",
@@ -133,7 +133,7 @@ function createPost(author: string, content: string): Post {
     }
 }
 
-function main(): void {
+fn main() -> Void {
     print("=== Alap Social Feed ===")
     print("")
 

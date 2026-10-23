@@ -35,8 +35,8 @@ const (
 	OP_LOAD_NULL
 	OP_LOAD_TRUE
 	OP_LOAD_FALSE
-	OP_LOAD_INT    // inline int32
-	OP_LOAD_FLOAT  // inline float64
+	OP_LOAD_INT   // inline int32
+	OP_LOAD_FLOAT // inline float64
 
 	// Arithmetic
 	OP_ADD
@@ -67,6 +67,7 @@ const (
 	OP_JUMP
 	OP_JUMP_IF_FALSE
 	OP_JUMP_IF_TRUE
+	OP_JUMP_IF_NOT_NULL
 
 	// Functions
 	OP_CALL        // call function: arg count in operand
@@ -75,8 +76,8 @@ const (
 	OP_RETURN_VOID
 
 	// Objects / arrays / maps
-	OP_NEW_OBJECT  // field count in operand
-	OP_NEW_ARRAY   // element count
+	OP_NEW_OBJECT // field count in operand
+	OP_NEW_ARRAY  // element count
 	OP_NEW_MAP
 	OP_NEW_CLASS
 
@@ -117,7 +118,8 @@ var opcodeNames = map[Opcode]string{
 	OP_NOT: "NOT", OP_AND: "AND", OP_OR: "OR",
 	OP_EQ: "EQ", OP_NEQ: "NEQ", OP_LT: "LT", OP_GT: "GT", OP_LTE: "LTE", OP_GTE: "GTE",
 	OP_STR_CONCAT: "STR_CONCAT",
-	OP_JUMP: "JUMP", OP_JUMP_IF_FALSE: "JUMP_IF_FALSE", OP_JUMP_IF_TRUE: "JUMP_IF_TRUE",
+	OP_JUMP:       "JUMP", OP_JUMP_IF_FALSE: "JUMP_IF_FALSE", OP_JUMP_IF_TRUE: "JUMP_IF_TRUE",
+	OP_JUMP_IF_NOT_NULL: "JUMP_IF_NOT_NULL",
 	OP_CALL: "CALL", OP_CALL_METHOD: "CALL_METHOD", OP_RETURN: "RETURN", OP_RETURN_VOID: "RETURN_VOID",
 	OP_NEW_OBJECT: "NEW_OBJECT", OP_NEW_ARRAY: "NEW_ARRAY", OP_NEW_MAP: "NEW_MAP",
 	OP_AWAIT: "AWAIT", OP_SPAWN_TASK: "SPAWN_TASK", OP_CHAN_SEND: "CHAN_SEND", OP_CHAN_RECV: "CHAN_RECV",
@@ -158,11 +160,11 @@ const (
 )
 
 type Constant struct {
-	Kind    ConstKind
-	IntVal  int64
+	Kind     ConstKind
+	IntVal   int64
 	FloatVal float64
-	StrVal  string
-	BoolVal bool
+	StrVal   string
+	BoolVal  bool
 }
 
 func (c Constant) String() string {
@@ -213,11 +215,11 @@ type Module struct {
 // ─── Generator ────────────────────────────────────────────────────────────────
 
 type Generator struct {
-	module  *Module
-	current *Function
-	locals  map[string]int
-	errors  []string
-	loopBreaks  [][]int
+	module        *Module
+	current       *Function
+	locals        map[string]int
+	errors        []string
+	loopBreaks    [][]int
 	loopContinues [][]int
 }
 
@@ -373,6 +375,10 @@ func (g *Generator) genStmt(stmt ast.Statement) {
 		g.genClassDecl(s)
 	case *ast.MatchStatement:
 		g.genMatch(s)
+		// A match always leaves its arm's value behind; a statement match
+		// discards it. (A tail-position match is returned instead — see
+		// genFunctionDecl.)
+		g.emit(OP_POP)
 	case *ast.ImportDecl, *ast.ExportDecl, *ast.InterfaceDecl,
 		*ast.TypeDecl, *ast.EnumDecl, *ast.StructDecl,
 		*ast.ActorDecl, *ast.StoreDecl:
@@ -401,6 +407,25 @@ func (g *Generator) genFunctionDecl(s *ast.FunctionDecl) {
 		g.defineLocal(p.Name)
 	}
 	fn.ParamCount = len(s.Params)
+	// A trailing match yields its arm's value (M4 canonical spelling), so
+	// the function returns it; every other tail returns void as before.
+	// The tail match bypasses genStmt: that path pops the value as a
+	// statement must, which would discard exactly what OP_RETURN needs.
+	if s.Body != nil {
+		if n := len(s.Body.Body); n > 0 {
+			if m, ok := s.Body.Body[n-1].(*ast.MatchStatement); ok {
+				for _, st := range s.Body.Body[:n-1] {
+					g.genStmt(st)
+				}
+				g.genMatch(m)
+				g.emit(OP_RETURN)
+				g.current = savedFunc
+				g.locals = savedLocals
+				g.module.Functions = append(g.module.Functions, fn)
+				return
+			}
+		}
+	}
 	g.genBlock(s.Body)
 	g.emit(OP_RETURN_VOID)
 
@@ -419,8 +444,26 @@ func (g *Generator) genAnonymousFunc(params []*ast.Param, body *ast.BlockStateme
 		g.defineLocal(p.Name)
 	}
 	fn.ParamCount = len(params)
-	g.genBlock(body)
-	g.emit(OP_RETURN_VOID)
+	// Same tail-match rule as named functions (see genFunctionDecl): the
+	// tail match bypasses genStmt so its value survives for OP_RETURN.
+	tailMatch := false
+	var tail *ast.MatchStatement
+	if body != nil {
+		if n := len(body.Body); n > 0 {
+			tail, tailMatch = body.Body[n-1].(*ast.MatchStatement)
+			if tailMatch {
+				for _, st := range body.Body[:n-1] {
+					g.genStmt(st)
+				}
+				g.genMatch(tail)
+				g.emit(OP_RETURN)
+			}
+		}
+	}
+	if !tailMatch {
+		g.genBlock(body)
+		g.emit(OP_RETURN_VOID)
+	}
 	g.current = savedFunc
 	g.locals = savedLocals
 	return fn
@@ -609,18 +652,46 @@ func (g *Generator) genMatch(s *ast.MatchStatement) {
 	g.emit(OP_STORE_LOCAL, subjIdx)
 	var jmpEnds []int
 	for _, arm := range s.Arms {
-		g.emit(OP_LOAD_LOCAL, subjIdx)
-		g.genExpr(arm.Pattern)
-		g.emit(OP_EQ)
-		jmpNext := g.emit(OP_JUMP_IF_FALSE, 0)
-		g.genBlock(arm.Body)
+		// A `_` pattern is the wildcard: it always matches (canonical
+		// semantics, M4). Anything else compares equal with the subject.
+		if ident, ok := arm.Pattern.(*ast.Identifier); !ok || ident.Name != "_" {
+			g.emit(OP_LOAD_LOCAL, subjIdx)
+			g.genExpr(arm.Pattern)
+			g.emit(OP_EQ)
+			jmpNext := g.emit(OP_JUMP_IF_FALSE, 0)
+			g.genArmValue(arm.Body)
+			jmpEnd := g.emit(OP_JUMP, 0)
+			jmpEnds = append(jmpEnds, jmpEnd)
+			g.patch(jmpNext, int32(g.currentPos()))
+			continue
+		}
+		g.genArmValue(arm.Body)
 		jmpEnd := g.emit(OP_JUMP, 0)
 		jmpEnds = append(jmpEnds, jmpEnd)
-		g.patch(jmpNext, int32(g.currentPos()))
 	}
 	end := g.currentPos()
 	for _, j := range jmpEnds {
 		g.patch(j, int32(end))
+	}
+}
+
+// genArmValue emits a match arm so exactly one value stays on the stack: the
+// value of a trailing expression, or null when the arm binds nothing. The
+// caller (statement or tail position) decides whether that value survives.
+func (g *Generator) genArmValue(body *ast.BlockStatement) {
+	if body == nil || len(body.Body) == 0 {
+		g.emit(OP_LOAD_NULL)
+		return
+	}
+	for _, st := range body.Body[:len(body.Body)-1] {
+		g.genStmt(st)
+	}
+	switch last := body.Body[len(body.Body)-1].(type) {
+	case *ast.ExprStatement:
+		g.genExpr(last.Expr)
+	default:
+		g.genStmt(last)
+		g.emit(OP_LOAD_NULL)
 	}
 }
 
@@ -817,6 +888,16 @@ func (g *Generator) genExpr(expr ast.Expression) {
 
 func (g *Generator) genBinary(e *ast.BinaryExpr) {
 	g.genExpr(e.Left)
+	if e.Op == "??" {
+		// Keep the left value on the stack when it is non-null. When it is
+		// null, discard it before evaluating the fallback expression.
+		g.emit(OP_DUP)
+		jmpEnd := g.emit(OP_JUMP_IF_NOT_NULL, 0)
+		g.emit(OP_POP)
+		g.genExpr(e.Right)
+		g.patch(jmpEnd, int32(g.currentPos()))
+		return
+	}
 	g.genExpr(e.Right)
 	switch e.Op {
 	case "+":
@@ -846,9 +927,6 @@ func (g *Generator) genBinary(e *ast.BinaryExpr) {
 	case "&&":
 		g.emit(OP_AND)
 	case "||":
-		g.emit(OP_OR)
-	case "??":
-		// null coalesce: already on stack → runtime handles
 		g.emit(OP_OR)
 	}
 }

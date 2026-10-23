@@ -3,6 +3,10 @@ Version: 0.1 (architecture draft)
 Target platforms: Onuron, Android, iOS, Linux
 Interpretation: "ISO" in the request is treated as iOS. A bootable ISO image target can be added separately.
 
+> **Naming note (13 Oct 2026):** the Alap CLI binaries are now `alap`/`alapc`/`alap-lsp`.
+> The name `nil` belongs to the canonical NilLang toolchain (`nilLang` repo).
+> Command examples below read `alap …`.
+
 ---
 
 ## 0. Executive definition
@@ -88,11 +92,11 @@ Example:
 ```text
 nil create counter
 cd counter
-nil run
-nil build android
-nil build ios
-nil build onuron
-nil build linux
+alap run
+alap build android
+alap build ios
+alap build onuron
+alap build linux
 ```
 
 ---
@@ -1698,16 +1702,16 @@ Connect this to Onuron's existing `nilrt` security/runtime layer rather than byp
 Primary command:
 
 ```bash
-nil build
+alap build
 ```
 
 Targets:
 
 ```bash
-nil build onuron
-nil build android
-nil build ios
-nil build linux
+alap build onuron
+alap build android
+alap build ios
+alap build linux
 ```
 
 Architectures:
@@ -1749,12 +1753,12 @@ Required commands:
 
 ```text
 nil create
-nil init
-nil build
-nil run
-nil test
-nil fmt
-nil check
+alap init
+alap build
+alap run
+alap test
+alap fmt
+alap check
 nil lint
 nil doctor
 nil install
@@ -1768,7 +1772,7 @@ nil shell
 
 nil generate
 nil migrate
-nil clean
+alap clean
 nil upgrade
 ```
 
@@ -1776,11 +1780,11 @@ Examples:
 
 ```bash
 nil create hello
-nil run --target linux
-nil run --target android
-nil run --target onuron
-nil check
-nil test
+alap run --target linux
+alap run --target android
+alap run --target onuron
+alap check
+alap test
 nil package
 ```
 
@@ -2232,7 +2236,7 @@ NilLang -> NABC
 Runtime:
 
 ```text
-nil run hello.nil
+alap run hello.nil
 ```
 
 Do not start with UI.
@@ -2259,15 +2263,15 @@ app Hello {
 Run:
 
 ```bash
-nil run --target linux
+alap run --target linux
 ```
 
 Then port the same app to:
 
 ```bash
-nil run --target android
-nil run --target onuron
-nil run --target ios
+alap run --target android
+alap run --target onuron
+alap run --target ios
 ```
 
 ---
@@ -3111,10 +3115,10 @@ app Hello {
 And:
 
 ```bash
-nil build onuron
-nil build android
-nil build ios
-nil build linux
+alap build onuron
+alap build android
+alap build ios
+alap build linux
 ```
 
 produce functioning applications with the same UI and state logic, while platform-specific services are provided through adapters.

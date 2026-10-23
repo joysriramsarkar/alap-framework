@@ -78,8 +78,8 @@ const (
 	TOKEN_ROUTE
 	TOKEN_ROUTER
 	TOKEN_THEME
-	TOKEN_BUILD    // build() keyword in UI components
-	TOKEN_TRY      // try expression
+	TOKEN_BUILD // build() keyword in UI components
+	TOKEN_TRY   // try expression
 	TOKEN_THROW
 	TOKEN_CATCH
 	TOKEN_FINALLY
@@ -103,33 +103,33 @@ const (
 	TOKEN_AMPAMP      // &&
 	TOKEN_PIPEPIPE    // ||
 	TOKEN_BANG        // !
-	TOKEN_EQ         // ==
-	TOKEN_NEQ        // !=
-	TOKEN_LT         // <
-	TOKEN_GT         // >
-	TOKEN_LTE        // <=
-	TOKEN_GTE        // >=
-	TOKEN_ASSIGN     // =
-	TOKEN_PLUS_EQ    // +=
-	TOKEN_MINUS_EQ   // -=
-	TOKEN_STAR_EQ    // *=
-	TOKEN_SLASH_EQ   // /=
-	TOKEN_PERCENT_EQ // %=
-	TOKEN_AMP_EQ     // &=
-	TOKEN_PIPE_EQ    // |=
-	TOKEN_ARROW      // =>
-	TOKEN_FAT_ARROW  // ->
+	TOKEN_EQ          // ==
+	TOKEN_NEQ         // !=
+	TOKEN_LT          // <
+	TOKEN_GT          // >
+	TOKEN_LTE         // <=
+	TOKEN_GTE         // >=
+	TOKEN_ASSIGN      // =
+	TOKEN_PLUS_EQ     // +=
+	TOKEN_MINUS_EQ    // -=
+	TOKEN_STAR_EQ     // *=
+	TOKEN_SLASH_EQ    // /=
+	TOKEN_PERCENT_EQ  // %=
+	TOKEN_AMP_EQ      // &=
+	TOKEN_PIPE_EQ     // |=
+	TOKEN_ARROW       // =>
+	TOKEN_FAT_ARROW   // ->
 	TOKEN_CHAN_SEND   // <-
-	TOKEN_QUESTION   // ?
+	TOKEN_QUESTION    // ?
 	TOKEN_QUEST_QUEST // ??
-	TOKEN_DOT        // .
-	TOKEN_DOTDOT     // ..
-	TOKEN_DOTDOTDOT  // ...
-	TOKEN_AT         // @
-	TOKEN_HASH       // #
-	TOKEN_COLON      // :
-	TOKEN_SEMICOLON  // ;
-	TOKEN_COMMA      // ,
+	TOKEN_DOT         // .
+	TOKEN_DOTDOT      // ..
+	TOKEN_DOTDOTDOT   // ...
+	TOKEN_AT          // @
+	TOKEN_HASH        // #
+	TOKEN_COLON       // :
+	TOKEN_SEMICOLON   // ;
+	TOKEN_COMMA       // ,
 
 	// ─── delimiters ──────────────────────────────────────────────────────────
 	TOKEN_LPAREN   // (
@@ -142,7 +142,10 @@ const (
 
 // keywords maps NilLang reserved words to their token types.
 var keywords = map[string]TokenType{
+	// `fn` is the canonical spelling (nilLang); `function` stays valid so
+	// existing Alap sources keep compiling. See M4 convergence (RELATIONSHIP.md).
 	"function":   TOKEN_FUNCTION,
+	"fn":         TOKEN_FUNCTION,
 	"return":     TOKEN_RETURN,
 	"let":        TOKEN_LET,
 	"const":      TOKEN_CONST,
@@ -232,7 +235,7 @@ func (t TokenType) String() string {
 		TOKEN_INT_LIT: "INT", TOKEN_FLOAT_LIT: "FLOAT",
 		TOKEN_STRING_LIT: "STRING", TOKEN_CHAR_LIT: "CHAR",
 		TOKEN_BOOL_LIT: "BOOL", TOKEN_NULL: "null", TOKEN_UNDEFINED: "undefined",
-		TOKEN_IDENT: "IDENT",
+		TOKEN_IDENT:    "IDENT",
 		TOKEN_FUNCTION: "function", TOKEN_RETURN: "return",
 		TOKEN_LET: "let", TOKEN_CONST: "const", TOKEN_VAR: "var",
 		TOKEN_IF: "if", TOKEN_ELSE: "else",

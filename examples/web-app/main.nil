@@ -15,6 +15,6 @@ component Counter {
     }
 }
 
-function main(): void {
+fn main() -> Void {
     print("Alap Web Client App Booted")
 }

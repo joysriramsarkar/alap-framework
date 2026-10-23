@@ -1,11 +1,12 @@
 // hello.nil — NilLang Hello World
-// Run: nilc -in examples/hello/main.nil -run
+// Run: alapc -in examples/hello/main.nil -run
+// Canonical spelling (M4): `fn` + `->` also compile with the nilLang toolchain.
 
-function greet(name: string): string {
+fn greet(name: string) -> string {
     return "Hello, " + name + "! Welcome to Alap Framework."
 }
 
-function main(): void {
+fn main() -> Void {
     print("=== NilLang Hello World ===")
 
     let msg: string = greet("Onuron")

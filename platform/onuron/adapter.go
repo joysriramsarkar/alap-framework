@@ -274,7 +274,7 @@ After=nilbus.service nilui.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/nilc -in /app/bin/main.nabc -run
+ExecStart=/usr/bin/alapc -in /app/bin/main.nabc -run
 Restart=on-failure
 Environment="NILBUS_SOCKET=/run/nilbus/system.sock"
 

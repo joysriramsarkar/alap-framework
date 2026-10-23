@@ -8,7 +8,7 @@ adapter := pkg.New()
 err := adapter.GenerateProject(outputDir, bytecode)
 ```
 
-The CLI selects the adapter via `nil build <platform>`.
+The CLI selects the adapter via `alap build <platform>`.
 
 | Target | Package | Output |
 |--------|---------|--------|
@@ -58,7 +58,7 @@ a.Shutdown()
 host, JNI/NDK glue, `assets/` (bytecode + resources), and an Android manifest.
 
 ```bash
-nil build android
+alap build android
 ```
 
 The generated app loads the bytecode through the C ABI (`abi/nilabi.h`) and can
@@ -72,7 +72,7 @@ honour `permissions` declared in `alap.yaml`.
 and a bridging header for the C ABI.
 
 ```bash
-nil build ios
+alap build ios
 ```
 
 ---
@@ -83,7 +83,7 @@ nil build ios
 AppImage/Flatpak-style packaging, targeting Wayland or X11.
 
 ```bash
-nil build linux
+alap build linux
 ```
 
 ---

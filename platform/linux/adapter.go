@@ -92,9 +92,9 @@ exec nilc -in "$DIR/main.nabc" -run "$@"
 `
 
 	fileMap := map[string]string{
-		filepath.Join(linuxDir, "run.sh"):                                runSh,
+		filepath.Join(linuxDir, "run.sh"):                               runSh,
 		filepath.Join(linuxDir, fmt.Sprintf("%s.json", a.AppID)):        flatpakManifest,
-		filepath.Join(appDir, "AppRun"):                                  appRun,
+		filepath.Join(appDir, "AppRun"):                                 appRun,
 		filepath.Join(appDir, fmt.Sprintf("%s.desktop", a.AppID)):       desktopFile,
 		filepath.Join(usrShareApps, fmt.Sprintf("%s.desktop", a.AppID)): desktopFile,
 	}

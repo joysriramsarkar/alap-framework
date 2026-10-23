@@ -16,17 +16,17 @@ const (
 	E  = math.E
 )
 
-func Abs(x float64) float64   { return math.Abs(x) }
-func Sqrt(x float64) float64  { return math.Sqrt(x) }
-func Floor(x float64) float64 { return math.Floor(x) }
-func Ceil(x float64) float64  { return math.Ceil(x) }
-func Round(x float64) float64 { return math.Round(x) }
-func Sin(x float64) float64   { return math.Sin(x) }
-func Cos(x float64) float64   { return math.Cos(x) }
-func Tan(x float64) float64   { return math.Tan(x) }
+func Abs(x float64) float64    { return math.Abs(x) }
+func Sqrt(x float64) float64   { return math.Sqrt(x) }
+func Floor(x float64) float64  { return math.Floor(x) }
+func Ceil(x float64) float64   { return math.Ceil(x) }
+func Round(x float64) float64  { return math.Round(x) }
+func Sin(x float64) float64    { return math.Sin(x) }
+func Cos(x float64) float64    { return math.Cos(x) }
+func Tan(x float64) float64    { return math.Tan(x) }
 func Pow(x, y float64) float64 { return math.Pow(x, y) }
-func Log(x float64) float64   { return math.Log(x) }
-func Log10(x float64) float64 { return math.Log10(x) }
+func Log(x float64) float64    { return math.Log(x) }
+func Log10(x float64) float64  { return math.Log10(x) }
 
 func Min(a, b float64) float64 {
 	return math.Min(a, b)

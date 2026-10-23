@@ -1,42 +1,46 @@
 # Alap Framework — CLI Reference
 
+> **Naming:** these binaries are `alap`/`alapc`/`alap-lsp`. The name `nil` belongs
+> to the canonical NilLang toolchain (`nilLang` repo); Alap renamed its binaries
+> so both toolchains can coexist on one `PATH`.
+
 The toolchain ships three binaries:
 
 | Binary | Purpose |
 |--------|---------|
-| `nil` | Project management CLI (init, run, build, test, fmt, repl, pm…). |
-| `nilc` | Standalone NilLang compiler (`source.nil` → `.nabc`). |
-| `nills` | Language Server Protocol daemon for editors. |
+| `alap` | Project management CLI (init, run, build, test, fmt, repl, pm…). |
+| `alapc` | Standalone NilLang compiler (`source.nil` → `.nabc`). |
+| `alap-lsp` | Language Server Protocol daemon for editors. |
 
 Build them all:
 
 ```bash
-go build -o bin/nil   ./cmd/nil
-go build -o bin/nilc  ./cmd/nilc
-go build -o bin/nills ./cmd/nills
+go build -o bin/alap   ./cmd/nil
+go build -o bin/alapc  ./cmd/alapc
+go build -o bin/alap-lsp ./cmd/alap-lsp
 ```
 
 ---
 
-## `nil` — project CLI
+## `alap` — project CLI
 
 ```text
-nil init <name>          create a new NilLang project
-nil run [file]           compile and run
-nil build <platform>     build for platform: onuron|android|ios|linux
-nil check                type-check all .nil files
-nil fmt                  format all .nil files
-nil test                 run tests
-nil repl                 interactive REPL
-nil lsp                  run the language server
-nil pm <subcommand>      package manager (install, add, remove, list)
-nil add <pkg>            add a dependency
-nil clean                clean build artifacts
-nil version              print version
-nil help                 print usage
+alap init <name>          create a new Alap project
+alap run [file]           compile and run
+alap build <platform>     build for platform: onuron|android|ios|linux
+alap check                type-check all .nil files
+alap fmt                  format all .nil files
+alap test                 run tests
+alap repl                 interactive REPL
+alap lsp                  run the language server
+alap pm <subcommand>      package manager (install, add, remove, list)
+alap add <pkg>            add a dependency
+alap clean                clean build artifacts
+alap version              print version
+alap help                 print usage
 ```
 
-### `nil init <name>`
+### `alap init <name>`
 
 Creates a project scaffold:
 
@@ -69,12 +73,12 @@ targets:
 dependencies: {}
 ```
 
-### `nil run [file]`
+### `alap run [file]`
 
 Compiles and executes a `.nil` file (defaults to the manifest entry). Prints
 program output and, if UI nodes were built, reports the UI tree.
 
-### `nil build <platform>`
+### `alap build <platform>`
 
 Compiles the project and hands the NABC bytecode to the matching platform
 adapter's `GenerateProject`:
@@ -86,37 +90,37 @@ adapter's `GenerateProject`:
 | `ios` | `platform/ios` | iOS Swift / Metal bundle |
 | `linux` | `platform/linux` | AppImage / Flatpak desktop bundle |
 
-### `nil check`
+### `alap check`
 
 Runs the type checker across the project's `.nil` files and prints diagnostics.
 
-### `nil fmt`
+### `alap fmt`
 
 Runs the canonical formatter (`compiler/formatter`) over `.nil` files.
 
-### `nil test`
+### `alap test`
 
 Compiles and runs the project's test entry points.
 
-### `nil repl`
+### `alap repl`
 
 Starts the interactive REPL (`runtime/repl`).
 
-### `nil lsp`
+### `alap lsp`
 
 Starts the language server (`compiler/lsp`).
 
-### `nil pm` / `nil add`
+### `alap pm` / `alap add`
 
 Manage dependencies through `pkg/manager` (NilPM): `install`, `add`, `remove`,
 `list`, with an `Audit` check.
 
 ---
 
-## `nilc` — standalone compiler
+## `alapc` — standalone compiler
 
 ```text
-nilc [flags] [input.nil] [output.nabc]
+alapc [flags] [input.nil] [output.nabc]
 
   -in <file>     Input .nil source file
   -out <file>    Output .nabc bytecode file
@@ -128,17 +132,17 @@ nilc [flags] [input.nil] [output.nabc]
 Examples:
 
 ```bash
-nilc -check src/main.nil
-nilc src/main.nil out/main.nabc
-nilc -run src/main.nil
-nilc -dump src/main.nil
+alapc -check src/main.nil
+alapc src/main.nil out/main.nabc
+alapc -run src/main.nil
+alapc -dump src/main.nil
 ```
 
-The positional form `nilc in.nil out.nabc` is also accepted.
+The positional form `alapc in.nil out.nabc` is also accepted.
 
 ---
 
-## `nills` — language server
+## `alap-lsp` — language server
 
 Runs an LSP server over stdio. It publishes diagnostics and answers requests:
 
@@ -150,7 +154,7 @@ Runs an LSP server over stdio. It publishes diagnostics and answers requests:
 - `textDocument/documentSymbol`
 
 ```bash
-nills --version
+alap-lsp --version
 ```
 
-Point your editor's LSP client at `nills`.
+Point your editor's LSP client at `alap-lsp`.

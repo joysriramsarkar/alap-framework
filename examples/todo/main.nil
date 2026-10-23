@@ -1,6 +1,6 @@
 // todo.nil — NilLang Todo App (CLI version)
 // Demonstrates: arrays, structs, enums, functions, match
-// Run: nilc -in examples/todo/main.nil -run
+// Run: alapc -in examples/todo/main.nil -run
 
 enum TodoStatus {
     Pending,
@@ -10,15 +10,15 @@ enum TodoStatus {
 }
 
 struct Todo {
-    id: i32
-    title: string
-    status: string
-    priority: i32
-    tags: string[]
+    id: Int,
+    title: string,
+    status: string,
+    priority: Int,
+    tags: Array<string>,
 }
 
-function createTodo(id: i32, title: string, priority: i32): Todo {
-    return {
+fn createTodo(id: Int, title: string, priority: Int) -> Todo {
+    return Todo {
         id: id,
         title: title,
         status: "Pending",
@@ -27,15 +27,15 @@ function createTodo(id: i32, title: string, priority: i32): Todo {
     }
 }
 
-function markDone(todo: Todo): void {
+fn markDone(todo: Todo) -> Void {
     todo.status = "Done"
 }
 
-function markInProgress(todo: Todo): void {
+fn markInProgress(todo: Todo) -> Void {
     todo.status = "InProgress"
 }
 
-function displayTodo(todo: Todo): void {
+fn displayTodo(todo: Todo) -> Void {
     let statusIcon: string = "⬜"
     if todo.status == "Done" {
         statusIcon = "✅"
@@ -49,9 +49,9 @@ function displayTodo(todo: Todo): void {
     print(statusIcon + " [" + todo.id.toString() + "] " + todo.title + " (priority=" + todo.priority.toString() + ")")
 }
 
-function countByStatus(todos: Todo[], status: string): i32 {
-    let count: i32 = 0
-    let i: i32 = 0
+fn countByStatus(todos: Array<Todo>, status: string) -> Int {
+    let count: Int = 0
+    let i: Int = 0
     while i < todos.length {
         if todos[i].status == status {
             count = count + 1
@@ -61,9 +61,9 @@ function countByStatus(todos: Todo[], status: string): i32 {
     return count
 }
 
-function filterByPriority(todos: Todo[], minPriority: i32): Todo[] {
-    let result: Todo[] = []
-    let i: i32 = 0
+fn filterByPriority(todos: Array<Todo>, minPriority: Int) -> Array<Todo> {
+    let result: Array<Todo> = []
+    let i: Int = 0
     while i < todos.length {
         if todos[i].priority >= minPriority {
             result.push(todos[i])
@@ -73,11 +73,11 @@ function filterByPriority(todos: Todo[], minPriority: i32): Todo[] {
     return result
 }
 
-function printStats(todos: Todo[]): void {
-    let total: i32 = todos.length
-    let done: i32 = countByStatus(todos, "Done")
-    let pending: i32 = countByStatus(todos, "Pending")
-    let inProgress: i32 = countByStatus(todos, "InProgress")
+fn printStats(todos: Array<Todo>) -> Void {
+    let total: Int = todos.length
+    let done: Int = countByStatus(todos, "Done")
+    let pending: Int = countByStatus(todos, "Pending")
+    let inProgress: Int = countByStatus(todos, "InProgress")
 
     print("")
     print("=== Statistics ===")
@@ -87,12 +87,12 @@ function printStats(todos: Todo[]): void {
     print("Pending:     " + pending.toString())
 }
 
-function main(): void {
+fn main() -> Void {
     print("=== NilLang Todo App ===")
     print("")
 
     // Create todos
-    let todos: Todo[] = [
+    let todos: Array<Todo> = [
     createTodo(1, "Set up Alap Framework", 5),
     createTodo(2, "Write NilLang compiler", 5),
     createTodo(3, "Implement VM runtime", 4),
@@ -114,7 +114,7 @@ function main(): void {
     markInProgress(todos[6])
 
     print("--- All Todos ---")
-    let i: i32 = 0
+    let i: Int = 0
     while i < todos.length {
         displayTodo(todos[i])
         i = i + 1
@@ -123,7 +123,7 @@ function main(): void {
     print("")
     print("--- High Priority (>= 4) ---")
     let highPriority = filterByPriority(todos, 4)
-    let j: i32 = 0
+    let j: Int = 0
     while j < highPriority.length {
         displayTodo(highPriority[j])
         j = j + 1

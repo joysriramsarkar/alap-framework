@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <i>Status: early-alpha prototype · Go 1.25+ · MIT (see <code>LICENSE</code>)</i>
+  <i>Status: early-alpha prototype · Go 1.25+ · AGPL-3.0 (see <code>LICENSE</code>)</i>
 </p>
 
 ---
@@ -112,36 +112,40 @@ alap-framework/
 ### 1. Build the toolchain
 
 ```bash
-go build -o bin/nil ./cmd/nil
-go build -o bin/nilc ./cmd/nilc
-go build -o bin/nills ./cmd/nills
+go build -o bin/alap ./cmd/nil
+go build -o bin/alapc ./cmd/nilc
+go build -o bin/alap-lsp ./cmd/nills
 ```
+
+> **Note:** the binaries are named `alap`/`alapc`/`alap-lsp` (not `nil`/`nilc`/`nills`)
+> because the canonical NilLang toolchain (`nilLang` repo) owns the `nil` name.
+> Installing both toolchains no longer shadows either `nil` on `PATH`.
 
 ### 2. Create and run a project
 
 ```bash
-nil init my-app
+alap init my-app
 cd my-app
-nil run            # compile & run
-nil repl           # interactive REPL
+alap run            # compile & run
+alap repl           # interactive REPL
 ```
 
 ### 3. Build for a platform
 
 ```bash
-nil build onuron   # Onuron native package
-nil build android  # Android Studio Gradle project
-nil build ios      # iOS Xcode bundle
-nil build linux    # Linux AppImage / Flatpak bundle
+alap build onuron   # Onuron native package
+alap build android  # Android Studio Gradle project
+alap build ios      # iOS Xcode bundle
+alap build linux    # Linux AppImage / Flatpak bundle
 ```
 
 ### 4. Developer tools
 
 ```bash
-nil check          # type-check all .nil files
-nil fmt            # format source files
-nil test           # run tests
-nil pm install     # resolve & lock dependencies
+alap check          # type-check all .nil files
+alap fmt            # format source files
+alap test           # run tests
+alap pm install     # resolve & lock dependencies
 ```
 
 Full command reference: [`docs/CLI.md`](./docs/CLI.md).
@@ -228,7 +232,7 @@ plan live in [`RELATIONSHIP.md`](./RELATIONSHIP.md).
 | Document | Contents |
 |----------|----------|
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Components, data flow, and boundaries |
-| [`docs/CLI.md`](./docs/CLI.md) | `nil`, `nilc`, `nills` command reference |
+| [`docs/CLI.md`](./docs/CLI.md) | `alap`, `alapc`, `alap-lsp` command reference |
 | [`docs/LANGUAGE.md`](./docs/LANGUAGE.md) | NilLang (Alap dialect) syntax reference |
 | [`docs/PLATFORMS.md`](./docs/PLATFORMS.md) | Android, iOS, Linux, Onuron adapters |
 | [`docs/WEB.md`](./docs/WEB.md) | Server, radix router, middleware, SSR/SSE/WebSocket |
@@ -244,4 +248,4 @@ plan live in [`RELATIONSHIP.md`](./RELATIONSHIP.md).
 
 ## License
 
-MIT License © 2026 Joy Sarkar / Onuron Project. See [`LICENSE`](./LICENSE).
+AGPL-3.0 © 2026 Joy Sarkar / Onuron Project. See [`LICENSE`](./LICENSE).

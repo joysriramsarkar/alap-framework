@@ -57,6 +57,7 @@ func TestKeywords(t *testing.T) {
 		tt  TokenType
 	}{
 		{"function", TOKEN_FUNCTION},
+		{"fn", TOKEN_FUNCTION}, // canonical spelling (M4)
 		{"async", TOKEN_ASYNC},
 		{"await", TOKEN_AWAIT},
 		{"component", TOKEN_COMPONENT},

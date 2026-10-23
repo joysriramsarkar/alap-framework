@@ -19,10 +19,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout nilLang dependency
+        uses: actions/checkout@v4
+        with:
+          repository: joysriramsarkar/nilLang
+          path: nilLang-dep
+
+      - name: Setup nilLang sibling directory
+        shell: bash
+        run: |
+          mkdir -p ../nilLang
+          cp -R nilLang-dep/* ../nilLang/
+          rm -rf nilLang-dep
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.x'
+          go-version: '1.25.0'
           cache: true
 
       - name: Verify module dependencies
@@ -37,45 +50,45 @@ jobs:
       - name: Build binaries (Unix)
         run: |
           mkdir -p bin
-          go build -v -o bin/nil ./cmd/nil
-          go build -v -o bin/nilc ./cmd/nilc
-          go build -v -o bin/nills ./cmd/nills
+          go build -v -o bin/alap ./cmd/nil
+          go build -v -o bin/alapc ./cmd/nilc
+          go build -v -o bin/alap-lsp ./cmd/nills
         if: runner.os != 'windows'
 
       - name: Build binaries (Windows)
         run: |
           if (!(Test-Path "bin")) { New-Item -ItemType Directory -Path "bin" }
-          go build -v -o bin/nil.exe ./cmd/nil
-          go build -v -o bin/nilc.exe ./cmd/nilc
-          go build -v -o bin/nills.exe ./cmd/nills
+          go build -v -o bin/alap.exe ./cmd/nil
+          go build -v -o bin/alapc.exe ./cmd/nilc
+          go build -v -o bin/alap-lsp.exe ./cmd/nills
         if: runner.os == 'windows'
 
       - name: Verify CLI tools & project checks (Unix)
         run: |
-          ./bin/nil --help
-          ./bin/nills --version
-          ./bin/nil check
-          ./bin/nil build nilos
-          ./bin/nil build android
-          ./bin/nil build ios
-          ./bin/nil build linux
-          ./bin/nil run examples/hello/main.nil
-          ./bin/nil run examples/calculator/main.nil
-          ./bin/nil run examples/social/main.nil
-          ./bin/nil run examples/todo/main.nil
+          ./bin/alap --help
+          ./bin/alap-lsp --version
+          ./bin/alap check
+          ./bin/alap build nilos
+          ./bin/alap build android
+          ./bin/alap build ios
+          ./bin/alap build linux
+          ./bin/alap run examples/hello/main.nil
+          ./bin/alap run examples/calculator/main.nil
+          ./bin/alap run examples/social/main.nil
+          ./bin/alap run examples/todo/main.nil
         if: runner.os != 'windows'
 
       - name: Verify CLI tools & project checks (Windows)
         run: |
-          .\bin\nil.exe --help
-          .\bin\nills.exe --version
-          .\bin\nil.exe check
-          .\bin\nil.exe build nilos
-          .\bin\nil.exe build android
-          .\bin\nil.exe build ios
-          .\bin\nil.exe build linux
-          .\bin\nil.exe run examples/hello/main.nil
-          .\bin\nil.exe run examples/calculator/main.nil
-          .\bin\nil.exe run examples/social/main.nil
-          .\bin\nil.exe run examples/todo/main.nil
+          .\bin\alap.exe --help
+          .\bin\alap-lsp.exe --version
+          .\bin\alap.exe check
+          .\bin\alap.exe build nilos
+          .\bin\alap.exe build android
+          .\bin\alap.exe build ios
+          .\bin\alap.exe build linux
+          .\bin\alap.exe run examples/hello/main.nil
+          .\bin\alap.exe run examples/calculator/main.nil
+          .\bin\alap.exe run examples/social/main.nil
+          .\bin\alap.exe run examples/todo/main.nil
         if: runner.os == 'windows'

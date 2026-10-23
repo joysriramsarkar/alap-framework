@@ -200,6 +200,33 @@ print(b == false)
 	}
 }
 
+func TestNullCoalesce(t *testing.T) {
+	src := `
+function fallback(): i32 {
+    print("fallback evaluated")
+    return 42
+}
+print(null ?? fallback())
+print(0 ?? fallback())
+print(false ?? fallback())
+print("value" ?? fallback())
+let empty = "" ?? "fallback"
+print(empty.length)
+`
+	out := compile(t, src)
+	lines := strings.Split(out, "\n")
+	expected := []string{"fallback evaluated", "42", "0", "false", "value", "0"}
+	if len(lines) != len(expected) {
+		t.Fatalf("expected %d output lines, got %d: %q", len(expected), len(lines), out)
+	}
+	for i, want := range expected {
+		got := strings.TrimSpace(lines[i])
+		if got != want {
+			t.Errorf("line[%d]: expected %q, got %q", i, want, got)
+		}
+	}
+}
+
 func TestMultipleFunctions(t *testing.T) {
 	src := `
 function square(n: i32): i32 {
@@ -567,5 +594,43 @@ func TestReactiveState(t *testing.T) {
 	sig.Set(100)
 	if updatedVal != 42 {
 		t.Errorf("expected unsubscribed listener not to receive 100, got %d", updatedVal)
+	}
+}
+
+// TestMatchValueFlows pins M4 match convergence end to end: expression arms,
+// the `_` wildcard, and a tail match returned from its function.
+func TestMatchValueFlows(t *testing.T) {
+	src := `
+fn pick(op: string) -> i32 {
+    match op {
+        "+" => 100,
+        _ => 200
+    }
+}
+print(pick("+"))
+print(pick("x"))
+`
+	out := compile(t, src)
+	if out != "100\n200" {
+		t.Errorf("expected '100\\n200', got %q", out)
+	}
+}
+
+// TestMatchStatementFormKeepsWorking pins backward compatibility: classic
+// block arms with explicit returns behave exactly as before value matches.
+func TestMatchStatementFormKeepsWorking(t *testing.T) {
+	src := `
+fn pick(op: string) -> i32 {
+    match op {
+        "+" => { return 100 }
+        _ => { return 200 }
+    }
+}
+print(pick("+"))
+print(pick("x"))
+`
+	out := compile(t, src)
+	if out != "100\n200" {
+		t.Errorf("expected '100\\n200', got %q", out)
 	}
 }

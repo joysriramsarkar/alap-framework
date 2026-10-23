@@ -1,52 +1,52 @@
 // counter.nil — NilLang Counter example
 // Demonstrates: variables, functions, loops, closures
-// Run: nilc -in examples/counter/main.nil -run
+// Run: alapc -in examples/counter/main.nil -run
 
 struct Counter {
-    value: i32
-    step: i32
-    name: string
+    value: Int,
+    step: Int,
+    name: string,
 }
 
-function createCounter(name: string, step: i32): Counter {
-    return { value: 0, step: step, name: name }
+fn createCounter(name: string, step: Int) -> Counter {
+    return Counter { value: 0, step: step, name: name }
 }
 
-function increment(c: Counter): i32 {
+fn increment(c: Counter) -> Int {
     c.value = c.value + c.step
     return c.value
 }
 
-function decrement(c: Counter): i32 {
+fn decrement(c: Counter) -> Int {
     c.value = c.value - c.step
     return c.value
 }
 
-function reset(c: Counter): void {
+fn reset(c: Counter) -> Void {
     c.value = 0
 }
 
-function displayCounter(c: Counter): void {
+fn displayCounter(c: Counter) -> Void {
     print("[" + c.name + "] value = " + c.value.toString() + " (step=" + c.step.toString() + ")")
 }
 
-function factorial(n: i32): i32 {
+fn factorial(n: Int) -> Int {
     if n <= 1 {
         return 1
     }
     return n * factorial(n - 1)
 }
 
-function fibonacci(n: i32): i32 {
+fn fibonacci(n: Int) -> Int {
     if n <= 1 {
         return n
     }
     return fibonacci(n - 1) + fibonacci(n - 2)
 }
 
-function sumRange(from: i32, to: i32): i32 {
-    let sum: i32 = 0
-    let i: i32 = from
+fn sumRange(start: Int, to: Int) -> Int {
+    let sum: Int = 0
+    let i: Int = start
     while i <= to {
         sum = sum + i
         i = i + 1
@@ -54,7 +54,7 @@ function sumRange(from: i32, to: i32): i32 {
     return sum
 }
 
-function main(): void {
+fn main() -> Void {
     print("=== NilLang Counter Demo ===")
     print("")
 
@@ -83,7 +83,7 @@ function main(): void {
 
     print("")
     print("--- Factorial ---")
-    let i: i32 = 1
+    let i: Int = 1
     while i <= 10 {
         print(i.toString() + "! = " + factorial(i).toString())
         i = i + 1
@@ -91,7 +91,7 @@ function main(): void {
 
     print("")
     print("--- Fibonacci ---")
-    let j: i32 = 0
+    let j: Int = 0
     while j <= 10 {
         print("fib(" + j.toString() + ") = " + fibonacci(j).toString())
         j = j + 1

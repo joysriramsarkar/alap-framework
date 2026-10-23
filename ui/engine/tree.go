@@ -9,11 +9,11 @@ import (
 
 // UITree manages the active declarative UI component tree and event dispatching.
 type UITree struct {
-	mu          sync.RWMutex
-	Root        *WidgetNode
-	nodeStack   []*WidgetNode
-	nextID      int
-	nodeMap     map[string]*WidgetNode
+	mu        sync.RWMutex
+	Root      *WidgetNode
+	nodeStack []*WidgetNode
+	nextID    int
+	nodeMap   map[string]*WidgetNode
 }
 
 // NewUITree creates a new UI tree manager.

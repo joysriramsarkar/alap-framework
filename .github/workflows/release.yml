@@ -36,10 +36,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Checkout nilLang dependency
+        uses: actions/checkout@v4
+        with:
+          repository: joysriramsarkar/nilLang
+          path: nilLang-dep
+
+      - name: Setup nilLang sibling directory
+        shell: bash
+        run: |
+          mkdir -p ../nilLang
+          cp -R nilLang-dep/* ../nilLang/
+          rm -rf nilLang-dep
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.x'
+          go-version: '1.25.0'
           cache: true
 
       - name: Build release binaries
@@ -57,9 +70,9 @@ jobs:
             EXT=".exe"
           fi
 
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nil${EXT}" ./cmd/nil
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nilc${EXT}" ./cmd/nilc
-          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/nills${EXT}" ./cmd/nills
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alap${EXT}" ./cmd/nil
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alapc${EXT}" ./cmd/nilc
+          go build -ldflags="-s -w" -o "dist/${PKG_NAME}/alap-lsp${EXT}" ./cmd/nills
 
           cp README.md "dist/${PKG_NAME}/"
           
