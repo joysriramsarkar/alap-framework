@@ -44,6 +44,16 @@ jobs:
       - name: Vet
         run: go vet ./...
 
+      - name: Check formatting (gofmt)
+        shell: bash
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted Go files (run 'gofmt -w .'):"
+            echo "$unformatted"
+            exit 1
+          fi
+
       - name: Run unit & integration tests
         run: go test -v ./...
 

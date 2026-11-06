@@ -101,6 +101,11 @@ func Start(in io.Reader, out io.Writer) {
 
 		checker := types.New()
 		checker.CheckProgram(prog)
+		if len(checker.Errors()) > 0 {
+			fmt.Fprintf(out, "type error: %s\n", strings.Join(checker.Errors(), ", "))
+			lineNum++
+			continue
+		}
 
 		gen := codegen.New(fmt.Sprintf("repl_%d", lineNum))
 		gen.GenerateProgram(prog)

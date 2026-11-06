@@ -29,7 +29,9 @@ language. It combines:
 - **Multi-platform native adapters** — Onuron, Android (JNI/NDK), iOS
   (Metal/Swift), and Linux (Wayland/X11/AppImage/Flatpak).
 - **A full web framework** — radix routing, middleware, SSR, SSE, WebSocket.
-- **An enterprise data layer** — query builder, transactions, migrations.
+- **A prototype data layer** — parameterised query builder, an in-memory
+  prototype transaction boundary (no real database driver; see
+  `docs/DATA.md`), and migrations.
 
 The toolchain compiles `.nil` source through a conventional pipeline:
 
@@ -47,7 +49,7 @@ source.nil ──lexer──▶ tokens ──parser──▶ AST ──type-chec
 | **Maturity** | Early-alpha / experimental. Interfaces may change. |
 | **Canonical language** | **`nilLang` (Go)** — this repo's compiler is *not* canonical. |
 | **Relationship** | See [`RELATIONSHIP.md`](./RELATIONSHIP.md) and [`docs/ROADMAP.md`](./docs/ROADMAP.md). |
-| **Known gaps** | No full type checker enforcement at runtime, limited error handling, limited standard library, its **own** compiler/VM today. |
+| **Known gaps** | Limited error handling, limited standard library, its **own** compiler/VM today. The type checker is enforced: `alap check`, `alap run`, builds, and `alapc` abort on type errors. |
 
 Planned direction: converge on the canonical nilLang compiler/runtime step by
 step while keeping Alap's unique value (UI engine, platform adapters, web
@@ -59,8 +61,6 @@ server, ORM, package manager).
 
 ```text
 alap-framework/
-├── abi/                # Stable C ABI boundary + cgo bridge (nilabi.h)
-├── auth/               # JWT, password hashing, session helpers
 ├── cmd/
 │   ├── nil/            # Alap project CLI (init, run, build, test, fmt, repl, pm, …)
 │   ├── nilc/           # NilLang bytecode compiler CLI
@@ -69,28 +69,27 @@ alap-framework/
 │   ├── ast/            # Abstract Syntax Tree nodes
 │   ├── codegen/        # NABC bytecode generator & serializer
 │   ├── formatter/      # Canonical code formatter
-│   ├── hir/            # High-level IR & constant folding optimizer
 │   ├── lexer/          # Tokenizer
 │   ├── lsp/            # Language server engine (diagnostics, completion, hover)
 │   ├── parser/         # Recursive-descent parser
-│   └── types/          # Static type checker
+│   └── types/          # Static type checker (fatal on error in the CLI pipelines)
 ├── data/
 │   ├── migration/      # Versioned schema migrations
-│   └── orm/            # SQL query builder, connection pool, transactions
+│   └── orm/            # Prototype SQL query builder (no real DB driver)
 ├── pkg/manager/        # NilPM package & lockfile manager (alap.yaml / alap.lock)
 ├── platform/
 │   ├── android/        # Android Studio / Gradle project generator & JNI bridge
 │   ├── ios/            # iOS Swift / Metal view hierarchy generator
 │   ├── linux/          # Linux AppImage / Flatpak desktop packager
-│   └── onuron/         # Onuron native `.nilax` bundle + Vulkan/Wayland adapter
+│   ├── onuron/         # Onuron native `.nilax` bundle + Vulkan/Wayland adapter
+│   └── web/            # Web bundle generator (index.html + main.nabc; not Wasm)
 ├── runtime/
 │   ├── actor/          # Actor concurrency & mailbox message passing
 │   ├── gc/             # Allocation tracking & telemetry
-│   ├── nilrt/          # End-to-end pipeline runner
 │   ├── repl/           # Interactive REPL
 │   ├── scheduler/      # Cooperative task scheduler
 │   └── vm/             # Stack-based NABC bytecode virtual machine
-├── stdlib/             # core, json, time, math, fs, net, crypto, log, async, database
+├── stdlib/             # crypto, database, fs, json, log, math, net, time
 ├── ui/                 # Declarative UI engine (engine, layout, state, render, theme, widgets, animation)
 ├── web/                # HTTP server, radix router, middleware, SSR, SSE, WebSocket
 ├── examples/           # calculator, counter, hello, pos, social, todo, web-app
@@ -103,7 +102,7 @@ alap-framework/
 ## Requirements
 
 - **Go 1.25+** (the module declares `go 1.25.0`; CI uses `1.25.x`).
-- Optional: a C toolchain (`gcc`/`clang`) if you want the cgo `abi` package built.
+- Optional: a C toolchain (`gcc`/`clang`) only for `go test -race`.
 
 ---
 
@@ -137,6 +136,7 @@ alap build onuron   # Onuron native package
 alap build android  # Android Studio Gradle project
 alap build ios      # iOS Xcode bundle
 alap build linux    # Linux AppImage / Flatpak bundle
+alap build web      # Web bundle: build/web/index.html + main.nabc (NABC bytecode, not WebAssembly)
 ```
 
 ### 4. Developer tools
@@ -145,7 +145,7 @@ alap build linux    # Linux AppImage / Flatpak bundle
 alap check          # type-check all .nil files
 alap fmt            # format source files
 alap test           # run tests
-alap pm install     # resolve & lock dependencies
+alap pm install     # lock dependencies (integrity unresolved: nothing is downloaded or hashed yet)
 ```
 
 Full command reference: [`docs/CLI.md`](./docs/CLI.md).

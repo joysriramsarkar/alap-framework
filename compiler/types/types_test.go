@@ -34,6 +34,24 @@ func TestCheckProgramDetectsAssignmentMismatch(t *testing.T) {
 	}
 }
 
+func TestCheckProgramCanonicalAliasesAndMatchWildcard(t *testing.T) {
+	c := checkSource(`
+fn pick(op: string) -> Int {
+    match op {
+        "+" => 100,
+        _ => 200
+    }
+}
+let wide: Int = 1
+let nothing: Void = print("x")
+let names: Array<string> = ["a", "b"]
+let empty: Array<Int> = []
+`)
+	if errs := c.Errors(); len(errs) > 0 {
+		t.Fatalf("expected canonical Int/Void and _ wildcard to type-check, got %v", errs)
+	}
+}
+
 func TestCheckProgramAllowsNumericWidening(t *testing.T) {
 	c := checkSource(`
 let small: i32 = 1
