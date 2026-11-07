@@ -39,4 +39,17 @@ func TestWebPlatformAdapter(t *testing.T) {
 	if err != nil || !strings.Contains(string(manifestFile), "AlapWebApp") {
 		t.Errorf("expected valid manifest.json, got: %s", string(manifestFile))
 	}
+
+	// Bytecode is NABC, not WebAssembly: it must be written as main.nabc
+	// and never mislabelled as .wasm.
+	nabcFile, err := os.ReadFile(filepath.Join(tempDir, "web", "main.nabc"))
+	if err != nil || string(nabcFile) != string(bytecode) {
+		t.Errorf("expected main.nabc containing the bytecode, got err=%v content=%q", err, string(nabcFile))
+	}
+	if _, err := os.Stat(filepath.Join(tempDir, "web", "alap.wasm")); !os.IsNotExist(err) {
+		t.Errorf("alap.wasm must not be produced: NABC bytecode is not WebAssembly")
+	}
+	if strings.Contains(string(indexFile), "alap.wasm") || !strings.Contains(string(indexFile), "main.nabc") {
+		t.Errorf("index.html must reference main.nabc, not alap.wasm, got: %s", string(indexFile))
+	}
 }

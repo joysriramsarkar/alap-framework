@@ -16,8 +16,8 @@ Build them all:
 
 ```bash
 go build -o bin/alap   ./cmd/nil
-go build -o bin/alapc  ./cmd/alapc
-go build -o bin/alap-lsp ./cmd/alap-lsp
+go build -o bin/alapc  ./cmd/nilc
+go build -o bin/alap-lsp ./cmd/nills
 ```
 
 ---
@@ -27,7 +27,7 @@ go build -o bin/alap-lsp ./cmd/alap-lsp
 ```text
 alap init <name>          create a new Alap project
 alap run [file]           compile and run
-alap build <platform>     build for platform: onuron|android|ios|linux
+alap build <platform>     build for platform: onuron|android|ios|linux|web
 alap check                type-check all .nil files
 alap fmt                  format all .nil files
 alap test                 run tests
@@ -89,10 +89,13 @@ adapter's `GenerateProject`:
 | `android` | `platform/android` | Android Studio / Gradle project + JNI bridge |
 | `ios` | `platform/ios` | iOS Swift / Metal bundle |
 | `linux` | `platform/linux` | AppImage / Flatpak desktop bundle |
+| `web` | `platform/web` | Web bundle: `build/web/index.html` + `main.nabc` (NABC bytecode, not WebAssembly) |
 
 ### `alap check`
 
-Runs the type checker across the project's `.nil` files and prints diagnostics.
+Runs the type checker across the project's `.nil` files and prints
+diagnostics. Exits non-zero if any file has a type error; `alap run`,
+`alap build`, and `alapc` likewise abort on type errors.
 
 ### `alap fmt`
 
@@ -112,8 +115,11 @@ Starts the language server (`compiler/lsp`).
 
 ### `alap pm` / `alap add`
 
-Manage dependencies through `pkg/manager` (NilPM): `install`, `add`, `remove`,
-`list`, with an `Audit` check.
+Manage dependencies through `pkg/manager` (NilPM). Only
+`alap pm install` is wired up (other subcommands are rejected);
+`alap add <pkg>` adds a dependency. Lockfile entries label integrity as
+`unresolved`: no artifact is downloaded or hashed, so the lock provides no
+integrity guarantee yet.
 
 ---
 

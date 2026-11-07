@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -103,6 +104,15 @@ func (db *Database) saveLocked() error {
 	return nil
 }
 
+// saveOrLogLocked persists while db.mu is held. Insert/Update/Delete
+// cannot return an error (established API), so persistence failures are
+// logged instead of being silently dropped; Close() still returns them.
+func (db *Database) saveOrLogLocked() {
+	if err := db.saveLocked(); err != nil {
+		log.Printf("database: save of %q failed: %v", db.path, err)
+	}
+}
+
 func (db *Database) CreateTable(name string) {
 	db.mu.Lock()
 	defer db.mu.Unlock()
@@ -129,7 +139,7 @@ func (db *Database) Insert(table string, rec Record) Record {
 		rec["id"] = float64(maxID + 1)
 	}
 	db.tables[table] = append(db.tables[table], rec)
-	_ = db.saveLocked()
+	db.saveOrLogLocked()
 	return rec
 }
 
@@ -150,7 +160,7 @@ func (db *Database) Update(table string, where map[string]interface{}, updates R
 			count++
 		}
 	}
-	_ = db.saveLocked()
+	db.saveOrLogLocked()
 	return count
 }
 
@@ -171,7 +181,7 @@ func (db *Database) Delete(table string, where map[string]interface{}) int {
 		}
 	}
 	db.tables[table] = remaining
-	_ = db.saveLocked()
+	db.saveOrLogLocked()
 	return count
 }
 

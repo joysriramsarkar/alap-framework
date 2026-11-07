@@ -3,7 +3,7 @@
 //
 //	alap init <name>            create a new Alap project
 //	alap run [file]             compile and run
-//	alap build <platform>       build for platform: onuron|android|ios|linux
+//	alap build <platform>       build for platform: onuron|android|ios|linux|web
 //	alap check                  type-check all .nil files
 //	alap fmt                    format all .nil files
 //	alap test                   run tests
@@ -29,6 +29,7 @@ import (
 	"github.com/joysriramsarkar/alap-framework/platform/ios"
 	"github.com/joysriramsarkar/alap-framework/platform/linux"
 	"github.com/joysriramsarkar/alap-framework/platform/onuron"
+	webplatform "github.com/joysriramsarkar/alap-framework/platform/web"
 	"github.com/joysriramsarkar/alap-framework/runtime/repl"
 	"github.com/joysriramsarkar/alap-framework/runtime/vm"
 )
@@ -243,7 +244,9 @@ func compileFile(filename string) (*codegen.Module, error) {
 
 	checker := types.New()
 	checker.CheckProgram(prog)
-	// non-fatal type errors in alpha
+	if len(checker.Errors()) > 0 {
+		return nil, fmt.Errorf("type error: %s", strings.Join(checker.Errors(), "\n"))
+	}
 
 	modName := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 	gen := codegen.New(modName)
@@ -286,12 +289,18 @@ func main() {
 			fmt.Fprintf(os.Stderr, "alap lsp: error: %v\n", err)
 		}
 	case "pm":
+		// Only `install` is implemented; reject other subcommands instead
+		// of silently running install for e.g. `alap pm remove foo`.
+		if len(args) > 0 && args[0] != "install" {
+			fmt.Fprintf(os.Stderr, "alap pm: unknown subcommand %q (only 'install' is supported)\n", args[0])
+			os.Exit(1)
+		}
 		pm := manager.New(".")
 		if err := pm.Install(); err != nil {
-			fmt.Printf("alap pm: error: %v\n", err)
-		} else {
-			fmt.Println("✓ Dependencies resolved and locked in alap.lock")
+			fmt.Fprintf(os.Stderr, "alap pm: error: %v\n", err)
+			os.Exit(1)
 		}
+		fmt.Println("✓ Dependencies locked in alap.lock (integrity unresolved: no artifacts are downloaded or hashed yet)")
 	case "build":
 		platform := "onuron"
 		if len(args) > 0 {
@@ -337,6 +346,7 @@ Commands:
                             android → Android APK / JNI scaffold
                             ios     → iOS app / Metal scaffold
                             linux   → Linux desktop bundle / Flatpak
+                            web     → Web bundle (index.html + main.nabc; NABC, not Wasm)
   alap check               Type-check all .nil source files
   alap test                Run test files (*_test.nil)
   alap fmt                 Format all .nil files
@@ -513,8 +523,10 @@ func cmdBuild(platform string) {
 		buildIOS()
 	case "linux":
 		buildLinux()
+	case "web":
+		buildWeb()
 	default:
-		fmt.Fprintf(os.Stderr, "alap build: unknown platform %q (use: onuron|android|ios|linux)\n", platform)
+		fmt.Fprintf(os.Stderr, "alap build: unknown platform %q (use: onuron|android|ios|linux|web)\n", platform)
 		os.Exit(1)
 	}
 }
@@ -605,6 +617,26 @@ func buildLinux() {
 	fmt.Printf("  • Bytecode bundled: %d bytes\n\n", len(bytecode))
 }
 
+func buildWeb() {
+	info := getProjectInfo()
+	bytecode, err := buildEntryBytecode(info)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "alap build web: error: %v\n", err)
+		os.Exit(1)
+	}
+
+	adapter := webplatform.New()
+	adapter.AppName = info.Name
+	outDir := filepath.Join("build")
+	if err := adapter.GenerateProject(outDir, bytecode); err != nil {
+		fmt.Fprintf(os.Stderr, "alap build web: error: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("✓ Built for Web → build/web/\n")
+	fmt.Printf("  • Page: build/web/index.html (runtime.js, style.css, manifest.json)\n")
+	fmt.Printf("  • Bytecode bundled: %d bytes in build/web/main.nabc (NABC bytecode, not WebAssembly)\n\n", len(bytecode))
+}
+
 func cmdCheck() {
 	nils := findNilFiles("src")
 	if len(nils) == 0 {
@@ -635,7 +667,8 @@ func cmdCheck() {
 		checker := types.New()
 		checker.CheckProgram(prog)
 		if len(checker.Errors()) > 0 {
-			fmt.Printf("  ⚠ %s (type warnings: %s)\n", f, strings.Join(checker.Errors(), "; "))
+			fmt.Printf("  ✗ %s (type errors: %s)\n", f, strings.Join(checker.Errors(), "; "))
+			ok = false
 		} else {
 			fmt.Printf("  ✓ %s\n", f)
 		}

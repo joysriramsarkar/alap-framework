@@ -130,6 +130,9 @@ func TestPOSDeclarativeUIHierarchy(t *testing.T) {
 
 	checker := types.New()
 	checker.CheckProgram(prog)
+	if len(checker.Errors()) > 0 {
+		t.Fatalf("type errors: %v", checker.Errors())
+	}
 
 	gen := codegen.New("pos_app")
 	gen.GenerateProgram(prog)

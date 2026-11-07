@@ -4,7 +4,7 @@ Alap provides three data facilities:
 
 | Package | Purpose |
 |---------|---------|
-| `data/orm` | SQL query builder, connection pool, transactions. |
+| `data/orm` | Prototype SQL query builder; in-memory prototype transaction boundary (no real DB driver). |
 | `data/migration` | Versioned, ordered schema migrations. |
 | `stdlib/database` | A lightweight in-process JSON-backed database. |
 
@@ -13,7 +13,13 @@ Alap provides three data facilities:
 ## Query builder (`data/orm`)
 
 `Table(name)` starts a fluent builder. Values are parameterised (never string
-interpolated), so the generated SQL is injection-safe.
+interpolated). Table/column names and operators cannot be parameters, so
+they are validated before interpolation: columns must match an identifier
+pattern (`name` or `table.name`) and operators must be on an allowlist
+(`=`, `!=`, `<>`, `<`, `<=`, `>`, `>=`, `LIKE`, `ILIKE`, `IN`, `IS`,
+`IS NOT`). A rejected name/operator is dropped and recorded in
+`QueryBuilder.Err()`; `ToSQL()` then returns no SQL, so a rejected query
+cannot be executed by accident through this builder.
 
 ```go
 sql, params := orm.Table("orders").
@@ -34,13 +40,14 @@ SELECT id, customer_id, total, status FROM orders WHERE status = $1 AND total >=
 |--------|-------------|
 | `Table(name)` | Begin a query against a table. |
 | `Select(cols...)` | Projection (defaults to `*`). |
-| `Where(col, op, val)` | Add a predicate; `op` is `=`, `>=`, `<`, … |
+| `Where(col, op, val)` | Add a predicate; `col`/`op` are validated (see above). |
 | `Limit(n)` | Row cap. |
-| `ToSQL()` | Return `(sql, params)`. |
+| `ToSQL()` | Return `(sql, params)`; `("", nil)` if validation failed. |
+| `Err()` | First validation error recorded while building, if any. |
 
 > `Where` stores the operator and value; `ToSQL()` is the canonical place to
 > inspect the exact emitted SQL. The exact placeholder dialect is fixed by the
-> builder — treat `ToSQL()` output as the contract.
+> builder — treat `ToSQL()` output as the contract, and check `Err()` first.
 
 ---
 
@@ -54,8 +61,11 @@ err := pool.Transaction(func(tx *orm.Tx) error {
 })
 ```
 
-`DBPool.Transaction` runs the callback and is the intended boundary for atomic
-units of work.
+`DBPool.Transaction` serialises the callback under the pool mutex and marks
+the `Tx` committed, or rolled back if the callback returns an error. This is
+an **in-memory prototype only**: there is no database connection behind it,
+so it provides no real atomicity, isolation, or rollback of actual work. Do
+not rely on it for transactional guarantees.
 
 ---
 
