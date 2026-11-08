@@ -4,12 +4,24 @@ package vm
 import (
 	"encoding/json"
 	"fmt"
+	"sync"
 
 	"github.com/joysriramsarkar/alap-framework/stdlib/database"
 )
 
 // dbHandles stores live database instances keyed by their handle string.
-var dbHandles = make(map[string]*database.Database)
+// All access goes through dbHandlesMu (via getDB / registration /
+// db_close): VMs may run database calls concurrently.
+var (
+	dbHandles   = make(map[string]*database.Database)
+	dbHandlesMu sync.RWMutex
+)
+
+func getDB(handle string) *database.Database {
+	dbHandlesMu.RLock()
+	defer dbHandlesMu.RUnlock()
+	return dbHandles[handle]
+}
 
 // registerDBBuiltins registers all database native functions.
 func (vm *VM) registerDBBuiltins() {
@@ -22,7 +34,9 @@ func (vm *VM) registerDBBuiltins() {
 			return Nil, err
 		}
 		handle := fmt.Sprintf("db_%p", db)
+		dbHandlesMu.Lock()
 		dbHandles[handle] = db
+		dbHandlesMu.Unlock()
 		return StrVal(handle), nil
 	})
 
@@ -31,7 +45,19 @@ func (vm *VM) registerDBBuiltins() {
 			return Nil, fmt.Errorf("db_close: handle required")
 		}
 		handle := args[0].StrVal
-		delete(dbHandles, handle)
+		dbHandlesMu.Lock()
+		db, ok := dbHandles[handle]
+		if ok {
+			delete(dbHandles, handle)
+		}
+		dbHandlesMu.Unlock()
+		if !ok {
+			return False, nil
+		}
+		// Actually close (flush) the database, not just drop the handle.
+		if err := db.Close(); err != nil {
+			return Nil, fmt.Errorf("db_close: %w", err)
+		}
 		return True, nil
 	})
 
@@ -39,7 +65,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 3 {
 			return Nil, fmt.Errorf("db_insert: handle, table, json required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_insert: invalid handle")
 		}
@@ -57,7 +83,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 3 {
 			return Nil, fmt.Errorf("db_select: handle, table, json_where required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_select: invalid handle")
 		}
@@ -82,7 +108,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 4 {
 			return Nil, fmt.Errorf("db_update: handle, table, where_json, updates_json required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_update: invalid handle")
 		}
@@ -98,7 +124,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 3 {
 			return Nil, fmt.Errorf("db_delete: handle, table, json_where required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_delete: invalid handle")
 		}
@@ -113,7 +139,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 3 {
 			return Nil, fmt.Errorf("db_count: handle, table, json_where required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_count: invalid handle")
 		}
@@ -128,7 +154,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 3 {
 			return Nil, fmt.Errorf("db_get: handle, table, json_where required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_get: invalid handle")
 		}
@@ -147,7 +173,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 1 {
 			return Nil, fmt.Errorf("db_tables: handle required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_tables: invalid handle")
 		}
@@ -163,7 +189,7 @@ func (vm *VM) registerDBBuiltins() {
 		if len(args) < 2 {
 			return Nil, fmt.Errorf("db_create_table: handle, table required")
 		}
-		db := dbHandles[args[0].StrVal]
+		db := getDB(args[0].StrVal)
 		if db == nil {
 			return Nil, fmt.Errorf("db_create_table: invalid handle")
 		}

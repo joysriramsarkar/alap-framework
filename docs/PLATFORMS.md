@@ -61,15 +61,17 @@ host, JNI/NDK glue, `assets/` (bytecode + resources), and an Android manifest.
 alap build android
 ```
 
-The generated app loads the bytecode through the C ABI (`abi/nilabi.h`) and can
-honour `permissions` declared in `alap.yaml`.
+The generated app loads the bytecode through the JNI glue and `nilabi.h`
+header generated into the project's own `cpp/` directory (there is no
+top-level abi package in this repo), and can honour `permissions`
+declared in `alap.yaml`.
 
 ---
 
 ## iOS (`platform/ios`)
 
 `GenerateProject` emits a Swift/Metal view hierarchy plus the embedded bytecode
-and a bridging header for the C ABI.
+and a bridging header.
 
 ```bash
 alap build ios
@@ -90,28 +92,28 @@ alap build linux
 
 ## Web (`platform/web`)
 
-Emits a web host bundle. The runtime logic lives in `web/*` (see
-[`WEB.md`](./WEB.md)); this adapter wires it to a build output.
+Emits a web host bundle (`index.html`, `js/runtime.js`, `style.css`,
+`manifest.json`) via:
+
+```bash
+alap build web   # → build/web/
+```
+
+The bytecode is written as `main.nabc`. It is **NABC bytecode, not
+WebAssembly** — no Wasm compilation exists yet, so no `.wasm` file is
+produced or claimed; a browser runtime would need a NABC interpreter to
+execute it. The server-side runtime logic lives in `web/*` (see
+[`WEB.md`](./WEB.md)).
 
 ---
 
-## The C ABI (all native targets)
+## Native embedding
 
-Native hosts embed the runtime through `abi/nilabi.h`:
-
-```c
-NilContext ctx = nilx_runtime_create();
-NilResult  r   = nilx_runtime_run(ctx, bytecode, size);
-if (!r.ok) { /* r.err.message */ }
-
-bool handled = nilx_runtime_dispatch_touch(ctx, x, y);
-char *json   = nilx_runtime_get_ui_json(ctx);
-/* ... */
-nilx_runtime_destroy(ctx);
-```
-
-The Go side boxes integer handles in C memory so it never converts a `uintptr`
-back to an `unsafe.Pointer` (see `abi/nilabi.go`).
+There is no top-level abi package or stable C ABI in this repository.
+Generated native projects carry their own glue: e.g. the Android adapter
+emits JNI code and a `nilabi.h` header inside the generated project's
+`cpp/` directory. Treat that generated scaffold as project-local, not as a
+versioned ABI.
 
 ---
 

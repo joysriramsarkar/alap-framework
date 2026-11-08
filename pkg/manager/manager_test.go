@@ -3,6 +3,7 @@ package manager
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -43,6 +44,15 @@ dependencies:
 	pm := New(tempDir)
 	if err := pm.Install(); err != nil {
 		t.Fatalf("pm.Install failed: %v", err)
+	}
+	// Integrity must be honestly labelled unresolved, never a fabricated
+	// sha256 of the package name/version string.
+	lockBytes, err := os.ReadFile(filepath.Join(tempDir, "alap.lock"))
+	if err != nil {
+		t.Fatalf("read lockfile: %v", err)
+	}
+	if !strings.Contains(string(lockBytes), `integrity: "unresolved"`) || strings.Contains(string(lockBytes), "sha256-") {
+		t.Errorf("lockfile must label integrity unresolved without a fabricated hash, got:\n%s", lockBytes)
 	}
 
 	// 1. Add dependency

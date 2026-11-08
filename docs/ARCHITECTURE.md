@@ -18,7 +18,7 @@ source.nil
   │
   ▼  compiler/lexer      → []Token
   ▼  compiler/parser     → *ast.Program
-  ▼  compiler/types      → diagnostics (alpha: non-fatal)
+  ▼  compiler/types      → diagnostics (fatal: the pipeline aborts on any type error)
   ▼  compiler/codegen    → *codegen.Module  (NABC bytecode)
   ▼  codegen.Serialize   → []byte           (portable .nabc)
   ▼  runtime/vm          → program output + *engine.UITree
@@ -34,9 +34,10 @@ Each stage is independently testable and occupies its own package.
 | `compiler/codegen` | Emit NABC bytecode | `codegen.New(name).GenerateProgram(prog)` |
 | `runtime/vm` | Execute NABC | `vm.New(module).Run()` |
 
-`runtime/nilrt` wires all of the above into a single convenience call
-(`Engine.ExecuteFullPipeline`), returning bytecode, UI tree, Vulkan-style draw
-commands, and timings — used by the integration tests.
+There is no separate pipeline-runner package: `cmd/nilc` (`compile`) and
+`cmd/nil` (`compileFile`) wire the stages together directly, and the
+integration tests in `tests/` do the same. Any stage error — including a
+type error — aborts compilation before codegen/execution.
 
 ---
 
@@ -54,8 +55,7 @@ format:
 
 `Serialize(mod)` produces a compact little-endian buffer prefixed with the
 magic `NABC`; `Deserialize([]byte)` validates the magic and rebuilds the
-module. This buffer is the artifact that crosses the platform adapters and the
-C ABI.
+module. This buffer is the artifact that crosses the platform adapters.
 
 ```go
 mod := gen.Module()
@@ -117,20 +117,13 @@ platform (`nilui` for Onuron, JSON for Android/iOS native hosts).
 
 ---
 
-## 5. The C ABI boundary
+## 5. Native embedding
 
-`abi/` is the stable boundary for embedding Alap from native hosts:
-
-- `abi/nilabi.h` — the C header (`NilContext`, `NilValue`, `NilResult`,
-  capability enum, platform info).
-- `abi/bridge.go` — a pure-Go handle registry mapping opaque handles to
-  `*RuntimeContext`.
-- `abi/nilabi.go` — the cgo bridge (`//go:build cgo`). It boxes integer handles
-  in C-allocated memory so the Go side never converts a `uintptr` back to an
-  `unsafe.Pointer`.
-
-Native hosts call `nilx_runtime_create`, `nilx_runtime_run` (bytes → execute),
-`nilx_runtime_dispatch_touch`, and `nilx_runtime_get_ui_json`.
+There is no top-level abi (or auth) package in this repository. Native
+embedding, where it exists, lives inside the generated projects: e.g. the
+Android adapter (`platform/android`) emits its own JNI glue and a
+`nilabi.h` header into the generated project's `cpp/` directory. That
+generated header is a scaffold, not a stable, versioned C ABI package.
 
 ---
 
@@ -146,8 +139,10 @@ exposes `New()` and `GenerateProject(outputDir, bytecode)`.
 
 - `web/*` — HTTP server, radix router, middleware chain, SSR, SSE, WebSocket.
   See [`WEB.md`](./WEB.md).
-- `data/*` and `stdlib/database` — query builder, pool, transactions,
-  migrations. See [`DATA.md`](./DATA.md).
+- `data/*` and `stdlib/database` — prototype query builder (identifier /
+  operator allowlist, parameterised values), an in-memory prototype
+  transaction boundary with no real DB driver, and migrations. See
+  [`DATA.md`](./DATA.md).
 
 ---
 
@@ -161,7 +156,8 @@ exposes `New()` and `GenerateProject(outputDir, bytecode)`.
 ## 9. Boundaries & non-goals
 
 - Alap does **not** claim to be the canonical NilLang implementation.
-- The type checker currently reports diagnostics without blocking execution.
+- The type checker blocks execution: `alap check` exits non-zero and the
+  `alap run` / build / `alapc` pipelines abort when any type error exists.
 - Error handling, capabilities, and the full standard library are **incomplete**
   (tracked in [`ROADMAP.md`](./ROADMAP.md)).
 - Hardware backends (GPU/audio/camera) are represented but not production-ready.

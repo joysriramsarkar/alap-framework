@@ -32,7 +32,9 @@ func compile(t *testing.T, src string) string {
 
 	checker := types.New()
 	checker.CheckProgram(prog)
-	// type errors are non-fatal in alpha
+	if len(checker.Errors()) > 0 {
+		t.Fatalf("type errors: %v", checker.Errors())
+	}
 
 	gen := codegen.New("test")
 	gen.GenerateProgram(prog)
@@ -440,8 +442,9 @@ let b: bool = true
 	prog := p.Parse()
 	checker := types.New()
 	checker.CheckProgram(prog)
-	// no fatal type errors expected
-	t.Logf("Type checker errors (non-fatal): %v", checker.Errors())
+	if len(checker.Errors()) > 0 {
+		t.Fatalf("expected no type errors, got %v", checker.Errors())
+	}
 }
 
 func TestUIComponentTree(t *testing.T) {

@@ -14,8 +14,9 @@ CI (`.github/workflows/ci.yml`) runs, on Linux/macOS/Windows:
 
 1. `go mod verify`
 2. `go vet ./...`
-3. `go test -v ./...`
-4. a build of `bin/alap`, `bin/alapc`, `bin/alap-lsp`
+3. a `gofmt -l .` check (any unformatted file fails the job)
+4. `go test -v ./...`
+5. a build of `bin/alap`, `bin/alapc`, `bin/alap-lsp`
 
 `go vet` is a required gate: a new warning fails CI.
 
@@ -25,15 +26,14 @@ CI (`.github/workflows/ci.yml`) runs, on Linux/macOS/Windows:
 
 | Area | Test files |
 |------|-----------|
-| Compiler | `compiler/{lexer,parser,types,codegen,hir,formatter,lsp}/*_test.go` |
-| Runtime | `runtime/{vm,actor,gc,scheduler}/*_test.go`, `runtime/nilrt/pipeline_test.go` |
+| Compiler | `compiler/{lexer,parser,types,codegen,formatter,lsp}/*_test.go` |
+| Runtime | `runtime/{vm,actor,gc,scheduler}/*_test.go` |
 | UI | `ui/{engine,layout,render,state,theme,widgets}/*_test.go` |
 | Web | `web/{router,middleware,server,ssr,sse,websocket}/*_test.go` |
-| Data | `data/{orm,migration}/*_test.go`, `stdlib/nil/nil_test.go` |
+| Data | `data/{orm,migration}/*_test.go` |
 | Platforms | `platform/{android,ios,linux,onuron,web}/*_test.go` |
 | Package manager | `pkg/manager/manager_test.go` |
-| ABI | `abi/nilabi_test.go` |
-| End-to-end | `tests/integration_test.go`, `examples/pos/*_test.go` |
+| End-to-end | `tests/integration_test.go`, `tests/migration_inventory_test.go`, `examples/pos/*_test.go` |
 
 ---
 
@@ -43,20 +43,16 @@ Every package below is exercised by at least one test.
 
 | Package | Covered |
 |---------|:-------:|
-| `abi` | ✅ |
-| `auth` | ✅ |
 | `compiler/lexer` | ✅ |
 | `compiler/parser` | ✅ |
 | `compiler/types` | ✅ |
 | `compiler/codegen` | ✅ |
-| `compiler/hir` | ✅ |
 | `compiler/formatter` | ✅ |
 | `compiler/lsp` | ✅ |
 | `runtime/vm` | ✅ |
 | `runtime/actor` | ✅ |
 | `runtime/gc` | ✅ |
 | `runtime/scheduler` | ✅ |
-| `runtime/nilrt` | ✅ |
 | `ui/engine` | ✅ |
 | `ui/layout` | ✅ |
 | `ui/render` | ✅ |
@@ -73,7 +69,6 @@ Every package below is exercised by at least one test.
 | `data/migration` | ✅ |
 | `stdlib/json` | ✅ |
 | `stdlib/math` | ✅ |
-| `stdlib/nil` | ✅ |
 | `pkg/manager` | ✅ |
 | `platform/android` | ✅ |
 | `platform/ios` | ✅ |
@@ -88,7 +83,7 @@ Every package below is exercised by at least one test.
 | `cmd/{nil,nilc,nills}` | CLI entry points; exercised indirectly via `tests/`. |
 | `compiler/ast` | Pure data types (nodes), no behaviour. |
 | `runtime/repl` | Interactive loop; needs a scripted stdin harness. |
-| `stdlib/{async,core,crypto,database,fs,log,net,time}` | Library bindings; exercised through the VM. |
+| `stdlib/{crypto,database,fs,log,net,time}` | Library bindings; exercised through the VM. |
 | `ui/animation` | Easing/interpolation helpers; no tests yet. |
 | `platform/onuron/{nilbus,nilhal,nilui}` | Host-hardware shims; only meaningful on a real device. |
 | `examples/{calculator,counter,hello,web-app}` | Sample source; `examples/pos` has tests. |
@@ -110,11 +105,15 @@ tokens := l.Tokenize()
 p := parser.New("test.nil", tokens)
 prog := p.Parse()
 
+checker := types.New()
+checker.CheckProgram(prog)
+if len(checker.Errors()) > 0 { /* fail: type errors are fatal */ }
+
 gen := codegen.New("test")
 gen.GenerateProgram(prog)
 blob := codegen.Serialize(gen.Module())
 
-// execute blob with runtime/vm (or runtime/nilrt for the full pipeline)
+// execute blob with runtime/vm
 ```
 
 Keep tests deterministic. The only concurrency-sensitive tests intentionally

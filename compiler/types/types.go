@@ -184,6 +184,9 @@ func (c *Checker) registerBuiltins() {
 		"char": Char, "string": String, "bytes": Bytes,
 		"null": Null, "undefined": Undefined, "any": Any, "never": Never,
 		"number": I64, // compatibility alias → i64
+		// Canonical (nilLang) capitalised spellings used by migrated examples.
+		"Int": I64, "UInt": U64, "Float": F64,
+		"Bool": Bool, "String": String, "Void": Void, "Byte": U8,
 	}
 	for name, t := range builtins {
 		c.types[name] = t
@@ -332,6 +335,44 @@ func (c *Checker) resolveTypeAnnotation(ann *ast.TypeAnnotation) *Type {
 	if ann.Array {
 		elem := c.resolveTypeAnnotation(&ast.TypeAnnotation{Name: ann.Name, Generic: ann.Generic})
 		return ArrayOf(elem)
+	}
+	// Generic container spellings: Array<T>, Map<K,V>, Set<T>, Channel<T>.
+	switch ann.Name {
+	case "Array":
+		if len(ann.Generic) > 0 {
+			t := ArrayOf(c.resolveTypeAnnotation(ann.Generic[0]))
+			if ann.Nullable {
+				return NullableOf(t)
+			}
+			return t
+		}
+	case "Map":
+		t := &Type{Kind: KindMap, Name: "Map"}
+		if len(ann.Generic) > 1 {
+			t.KeyType = c.resolveTypeAnnotation(ann.Generic[0])
+			t.ValueType = c.resolveTypeAnnotation(ann.Generic[1])
+		}
+		if ann.Nullable {
+			return NullableOf(t)
+		}
+		return t
+	case "Set":
+		t := &Type{Kind: KindSet, Name: "Set"}
+		if len(ann.Generic) > 0 {
+			t.Elem = c.resolveTypeAnnotation(ann.Generic[0])
+		}
+		if ann.Nullable {
+			return NullableOf(t)
+		}
+		return t
+	case "Channel":
+		if len(ann.Generic) > 0 {
+			t := ChannelOf(c.resolveTypeAnnotation(ann.Generic[0]))
+			if ann.Nullable {
+				return NullableOf(t)
+			}
+			return t
+		}
 	}
 	t, found := c.types[ann.Name]
 	if !found {
@@ -564,6 +605,9 @@ func (c *Checker) checkExpr(expr ast.Expression, env *Env) *Type {
 		}
 		return t
 	case *ast.Identifier:
+		if e.Name == "_" { // match wildcard / discarded identifier, not a variable
+			return Any
+		}
 		sym, ok := env.lookup(e.Name)
 		if !ok {
 			c.errorf(e.Pos, "undefined: %s", e.Name)

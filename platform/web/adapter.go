@@ -64,7 +64,7 @@ func (a *Adapter) GenerateProject(outputDir string, bytecode []byte) error {
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       AlapRuntime.boot({
-        wasmUrl: 'alap.wasm',
+        bytecodeUrl: 'main.nabc',
         rootId: 'alap-root',
         hydration: %t
       });
@@ -193,6 +193,8 @@ body {
 		return err
 	}
 
-	// 5. Write bytecode / wasm placeholder
-	return os.WriteFile(filepath.Join(webDir, "alap.wasm"), bytecode, 0644)
+	// 5. Write the NABC bytecode. This is NOT WebAssembly: no Wasm
+	// compilation exists yet, so the file is honestly named .nabc and a
+	// browser runtime would need a NABC interpreter to execute it.
+	return os.WriteFile(filepath.Join(webDir, "main.nabc"), bytecode, 0644)
 }

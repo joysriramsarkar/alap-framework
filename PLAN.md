@@ -4,7 +4,7 @@
 > মূল্য: `ui/`, `platform/`, `web/`, `data/`, NilPM — এগুলো রক্ষা করে nilLang-এ একীভূত হওয়া (M4)।
 
 ## বর্তমান অবস্থা
-- Pipeline সম্পূর্ণ: lexer→parser→types (non-fatal)→HIR→NABC→VM→UI tree। `go test ./...` সবুজ (সার্ভে অনুযায়ী)।
+- Pipeline সম্পূর্ণ: lexer→parser→types (fatal: type error থাকলে pipeline abort)→NABC→VM→UI tree। `go test ./...` সবুজ (সার্ভে অনুযায়ী)।
 - UI tree/layout/state/render আছে; reconciler diff, layout wrap/align, animation কভারেজ অসম্পূর্ণ।
 - Platform = generator-only (Gradle/JNI, Swift/Metal, AppDir, Onuron scaffold); device/store validation বাকি।
 - `examples/pos` (mini-pos 1.0.0) একমাত্র টেস্টেড উদাহরণ; `build/` + `pos.db` কমিটেড (hygiene issue); অন্য উদাহরণে টেস্ট নেই।

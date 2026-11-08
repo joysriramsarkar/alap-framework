@@ -26,6 +26,9 @@ func runPOS(t *testing.T, src string) *vm.VM {
 	}
 	checker := types.New()
 	checker.CheckProgram(prog)
+	if len(checker.Errors()) > 0 {
+		t.Fatalf("type: %v", checker.Errors())
+	}
 	gen := codegen.New("pos_run")
 	gen.GenerateProgram(prog)
 	if len(gen.Errors()) > 0 {
