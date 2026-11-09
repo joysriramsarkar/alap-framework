@@ -637,3 +637,31 @@ print(pick("x"))
 		t.Errorf("expected '100\\n200', got %q", out)
 	}
 }
+
+// TestDoubleExecutionRegression pins P0-1: programs defining main() (with or without
+// explicit top-level invocation) execute main() exactly once.
+func TestDoubleExecutionRegression(t *testing.T) {
+	// Case 1: Standard entry point without explicit top-level main()
+	src1 := `
+function main(): void {
+    print("running once")
+}
+`
+	out1 := compile(t, src1)
+	if out1 != "running once" {
+		t.Fatalf("expected 'running once', got %q", out1)
+	}
+
+	// Case 2: Program with explicit top-level main() call
+	src2 := `
+function main(): void {
+    print("called at top level")
+}
+
+main()
+`
+	out2 := compile(t, src2)
+	if out2 != "called at top level" {
+		t.Fatalf("expected 'called at top level' exactly once, got %q", out2)
+	}
+}

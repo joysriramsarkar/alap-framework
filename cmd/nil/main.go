@@ -82,8 +82,6 @@ function main(): void {
     
     greet("Onuron User")
 }
-
-main()
 `
 
 const appNil = `// App.nil — Root UI component (Alap declarative UI)

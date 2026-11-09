@@ -18,4 +18,3 @@ fn main() -> Void {
     print("Alap Framework is running!")
 }
 
-main()

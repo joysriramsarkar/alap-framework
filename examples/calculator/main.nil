@@ -139,4 +139,3 @@ fn main() -> Void {
     print("=== Done ===")
 }
 
-main()

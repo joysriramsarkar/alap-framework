@@ -163,4 +163,3 @@ fn main() -> Void {
     print("=== Alap Social Feed Initialized ===")
 }
 
-main()

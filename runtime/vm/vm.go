@@ -268,14 +268,15 @@ func newFrame(fn *codegen.Function) *Frame {
 
 // VM is the NilLang bytecode virtual machine.
 type VM struct {
-	module   *codegen.Module
-	globals  map[string]Value
-	stack    []Value
-	frames   []*Frame
-	output   strings.Builder
-	errors   []string
-	maxStack int
-	UITree   *engine.UITree
+	module       *codegen.Module
+	globals      map[string]Value
+	stack        []Value
+	frames       []*Frame
+	output       strings.Builder
+	errors       []string
+	maxStack     int
+	UITree       *engine.UITree
+	mainExecuted bool
 }
 
 // New creates a VM for the given compiled module.
@@ -507,7 +508,7 @@ func (vm *VM) Run() error {
 	if err := vm.callFunction(vm.module.MainFunc, nil); err != nil {
 		return err
 	}
-	if userMain := vm.findFunction("main"); userMain != nil && userMain != vm.module.MainFunc {
+	if userMain := vm.findFunction("main"); userMain != nil && userMain != vm.module.MainFunc && !vm.mainExecuted {
 		return vm.callFunction(userMain, nil)
 	}
 	return nil
@@ -534,6 +535,9 @@ func (vm *VM) peek() Value {
 }
 
 func (vm *VM) callFunction(fn *codegen.Function, args []Value) error {
+	if fn != nil && fn.Name == "main" && (vm.module == nil || fn != vm.module.MainFunc) {
+		vm.mainExecuted = true
+	}
 	frame := newFrame(fn)
 	// load args into locals
 	for i, arg := range args {
